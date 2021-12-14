@@ -7,6 +7,7 @@ import de.fhdo.lemma.data.DataFactory;
 import de.fhdo.lemma.data.DataField;
 import de.fhdo.lemma.data.DataModel;
 import de.fhdo.lemma.data.ListType;
+import de.fhdo.lemma.data.Type;
 import de.fhdo.lemma.data.Version;
 import de.fhdo.lemma.service.ApiOperationComment;
 import de.fhdo.lemma.service.Endpoint;
@@ -785,7 +786,7 @@ public class LemmaServiceSubGenerator {
         throw Exceptions.sneakyThrow(_t);
       }
     }
-    Object _type = importedType.getType();
+    Type _type = importedType.getType();
     boolean _tripleNotEquals = (_type != null);
     if (_tripleNotEquals) {
       return importedType;
@@ -818,7 +819,7 @@ public class LemmaServiceSubGenerator {
         throw Exceptions.sneakyThrow(_t);
       }
     }
-    Object _type = importedType.getType();
+    Type _type = importedType.getType();
     boolean _tripleNotEquals = (_type != null);
     if (_tripleNotEquals) {
       return importedType;
