@@ -1,0 +1,67 @@
+version v109 {
+    context SwaggerPetstoreOpenAPI30 {
+        structure Order {
+            long id,
+            long petid,
+            int quantity,
+            date shipdate,
+            string status,
+            boolean complete
+        }
+        
+        structure Customer {
+            long id,
+            string username,
+            AddressList address
+        }
+        
+        list AddressList { Address address }
+        
+        structure Address {
+            string street,
+            string city,
+            string state,
+            string zip
+        }
+        
+        structure Category {
+            long id,
+            string name
+        }
+        
+        structure User {
+            long id,
+            string username,
+            string firstname,
+            string lastname,
+            string email,
+            string password,
+            string phone,
+            int userstatus
+        }
+        
+        structure Tag {
+            long id,
+            string name
+        }
+        
+        structure Pet {
+            long id,
+            string name,
+            Category category,
+            PhotoUrlsList photourls,
+            TagsList tags,
+            string status
+        }
+        
+        list PhotoUrlsList { string photourls }
+        
+        list TagsList { Tag tags }
+        
+        structure ApiResponse {
+            int code,
+            string type,
+            string message
+        }
+    }
+}

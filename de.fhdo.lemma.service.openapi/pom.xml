@@ -97,6 +97,17 @@
             <artifactId>swagger-parser</artifactId>
             <version>2.0.28</version>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+        <!-- ONLY FOR DEVELOPMENT PURPOSE, DO NOT DEPLOY -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.6</version>
+        </dependency>
 
 
     </dependencies>

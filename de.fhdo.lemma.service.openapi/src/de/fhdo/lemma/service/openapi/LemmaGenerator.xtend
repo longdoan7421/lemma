@@ -21,16 +21,17 @@ class LemmaGenerator {
     OpenAPI openAPI
     Logger logger
 
-    /*
+
     //This entrypoint is only needed for local testing.
     def static void main(String[] args) {
         val modelLocation = "https://petstore3.swagger.io/api/v3/openapi.json"
         val generator = new LemmaGenerator()
-        generator.parse(modelLocation)
-        generator.generateModels("./models-gen/", "generated.data",
+        val parRes = generator.parse(modelLocation)
+        parRes.forEach[System.out.println(it)]
+        generator.generateModels(System.getProperty("user.dir")+"/model-gen/", "generated.data",
         "generated.services", "openapi.technology", "de.example")
     }
-    */
+
     new() {
         logger = LoggerFactory.getLogger(LemmaGenerator)
     }
@@ -52,7 +53,8 @@ class LemmaGenerator {
         parseOptions.setFlatten(true)
         val result = new OpenAPIParser().readLocation(openapi, null, parseOptions)
         if(result.messages !== null) {
-            returnMessages.addAll(result.messages)
+            if(result.messages.length == 0) returnMessages.add("No errors or warnings encountered!")
+            else returnMessages.addAll(result.messages)
         }
         if(result.openAPI !== null) {
             openAPI = result.openAPI
@@ -74,13 +76,13 @@ class LemmaGenerator {
         val dataGenerator = new LemmaDataSubGenerator(openAPI, genPath, dataFilename)
         val dataModel = dataFilename -> dataGenerator.generate
         //
-        logger.info("Starting generation of LEMMA Technology Model...")
-        val technologyGenerator = new LemmaTechnologySubGenerator(openAPI, genPath, techFilename)
-        val techModel = techFilename -> technologyGenerator.generate
+        //logger.info("Starting generation of LEMMA Technology Model...")
+        //val technologyGenerator = new LemmaTechnologySubGenerator(openAPI, genPath, techFilename)
+        //val techModel = techFilename -> technologyGenerator.generate
         //
-        logger.info("Starting generation of LEMMA Service Model...")
-         val serviceGenerator =
-            new LemmaServiceSubGenerator(openAPI, dataModel, techModel, genPath, serviceFilename)
-        serviceGenerator.generate(prefixService)
+        //logger.info("Starting generation of LEMMA Service Model...")
+        // val serviceGenerator =
+        //    new LemmaServiceSubGenerator(openAPI, dataModel, techModel, genPath, serviceFilename)
+        //serviceGenerator.generate(prefixService)
     }
 }
