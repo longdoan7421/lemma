@@ -55,6 +55,7 @@
         <mapping-metamodel-version>${project.version}</mapping-metamodel-version>
         <maven-clean-plugin-version>3.1.0</maven-clean-plugin-version>
         <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
+        <maven-assembly-plugin-version>3.3.0</maven-assembly-plugin-version>
         <service-metamodel-version>${project.version}</service-metamodel-version>
         <service-extractor-version>${project.version}</service-extractor-version>
         <technology-metamodel-version>${project.version}</technology-metamodel-version>
