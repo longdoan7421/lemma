@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class DataGeneratorTest {
   private Logger logger;
   
-  private final String schemaLocation = "https://petstore3.swagger.io/api/v3/openapi.json";
+  private final String localSchema = new File("test-schemas/openapi.json").toURI().toString();
   
   private LemmaDataSubGenerator dataGenerator;
   
@@ -28,7 +28,7 @@ public class DataGeneratorTest {
     final ParseOptions parseOptions = new ParseOptions();
     parseOptions.setResolve(true);
     parseOptions.setFlatten(true);
-    final SwaggerParseResult result = new OpenAPIParser().readLocation(this.schemaLocation, null, parseOptions);
+    final SwaggerParseResult result = new OpenAPIParser().readLocation(this.localSchema, null, parseOptions);
     this.openAPI = result.getOpenAPI();
   }
   
@@ -37,7 +37,7 @@ public class DataGeneratorTest {
     this.logger.info("Starting generation of LEMMA Data Model...");
     String _property = System.getProperty("user.dir");
     String _plus = (_property + 
-      "/model-gen/");
+      "/test-model-gen/");
     LemmaDataSubGenerator _lemmaDataSubGenerator = new LemmaDataSubGenerator(this.openAPI, _plus, "test.data");
     this.dataGenerator = _lemmaDataSubGenerator;
     this.dataGenerator.generate();

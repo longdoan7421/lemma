@@ -12,8 +12,10 @@
         <dependencySet>
             <includes>
                 <include>io.swagger.parser.v3:swagger-parser</include>
+                <include>commons-io:commons-io</include>
                 <!-- THIS IS ONLY INCLUDED FOR DEVELOPMENT PURPOSE -->
                 <include>ch.qos.logback:logback-classic</include>
+                <!-- THIS IS ONLY INCLUDED FOR TEST PURPOSE -->
                 <include>junit:junit</include>
             </includes>
             <useTransitiveDependencies>true</useTransitiveDependencies>

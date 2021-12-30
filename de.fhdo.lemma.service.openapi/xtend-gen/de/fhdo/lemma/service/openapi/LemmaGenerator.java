@@ -1,13 +1,13 @@
 package de.fhdo.lemma.service.openapi;
 
 import de.fhdo.lemma.data.DataModel;
+import de.fhdo.lemma.technology.Technology;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
 import org.eclipse.xtext.xbase.lib.Pair;
@@ -28,20 +28,6 @@ public class LemmaGenerator {
   private OpenAPI openAPI;
   
   private Logger logger;
-  
-  public static void main(final String[] args) {
-    final String modelLocation = "https://petstore3.swagger.io/api/v3/openapi.json";
-    final LemmaGenerator generator = new LemmaGenerator();
-    final List<String> parRes = generator.parse(modelLocation);
-    final Consumer<String> _function = (String it) -> {
-      System.out.println(it);
-    };
-    parRes.forEach(_function);
-    String _property = System.getProperty("user.dir");
-    String _plus = (_property + "/model-gen/");
-    generator.generateModels(_plus, "generated.data", 
-      "generated.services", "openapi.technology", "de.example");
-  }
   
   public LemmaGenerator() {
     this.logger = LoggerFactory.getLogger(LemmaGenerator.class);
@@ -103,5 +89,12 @@ public class LemmaGenerator {
     final LemmaDataSubGenerator dataGenerator = new LemmaDataSubGenerator(this.openAPI, genPath, dataFilename);
     DataModel _generate = dataGenerator.generate();
     final Pair<String, DataModel> dataModel = Pair.<String, DataModel>of(dataFilename, _generate);
+    this.logger.info("Starting generation of LEMMA Technology Model...");
+    final LemmaTechnologySubGenerator technologyGenerator = new LemmaTechnologySubGenerator(this.openAPI, genPath, techFilename);
+    Technology _generate_1 = technologyGenerator.generate();
+    final Pair<String, Technology> techModel = Pair.<String, Technology>of(techFilename, _generate_1);
+    this.logger.info("Starting generation of LEMMA Service Model...");
+    final LemmaServiceSubGenerator serviceGenerator = new LemmaServiceSubGenerator(this.openAPI, dataModel, techModel, genPath, serviceFilename);
+    serviceGenerator.generate(prefixService);
   }
 }

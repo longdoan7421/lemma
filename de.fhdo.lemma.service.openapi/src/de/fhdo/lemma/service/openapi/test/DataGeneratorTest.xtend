@@ -14,7 +14,7 @@ import java.io.File
 
 class DataGeneratorTest {
     Logger logger;
-    val schemaLocation = "https://petstore3.swagger.io/api/v3/openapi.json"
+    val localSchema = new File("test-schemas/openapi.json").toURI.toString
     LemmaDataSubGenerator dataGenerator
     OpenAPI openAPI
 
@@ -25,7 +25,7 @@ class DataGeneratorTest {
         val parseOptions = new ParseOptions()
         parseOptions.setResolve(true)
         parseOptions.setFlatten(true)
-        val result = new OpenAPIParser().readLocation(schemaLocation, null, parseOptions)
+        val result = new OpenAPIParser().readLocation(localSchema, null, parseOptions)
         openAPI = result.openAPI
     }
 
@@ -33,7 +33,7 @@ class DataGeneratorTest {
     def void dataTest() throws Exception {
         logger.info("Starting generation of LEMMA Data Model...")
         dataGenerator= new LemmaDataSubGenerator(openAPI, System.getProperty("user.dir")+
-          "/model-gen/", "test.data")
+          "/test-model-gen/", "test.data")
         dataGenerator.generate
         assertTrue(new File(System.getProperty("user.dir")+"/model-gen/test.data").exists)
     }
