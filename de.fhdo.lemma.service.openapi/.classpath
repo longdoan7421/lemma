@@ -51,5 +51,7 @@
 	<classpathentry kind="lib" path="external-lib/logback-classic-1.2.6.jar"/>
 	<classpathentry kind="lib" path="external-lib/logback-core-1.2.6.jar"/>
 	<classpathentry kind="lib" path="external-lib/junit-4.12.jar"/>
+	<classpathentry kind="lib" path="external-lib/btf-1.3.jar"/>
+	<classpathentry kind="lib" path="external-lib/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
