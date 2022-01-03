@@ -67,3 +67,4 @@ Bundle-ClassPath: .,
  external-lib/uri-template-0.10.jar,
  external-lib/validation-api-1.1.0.Final.jar
 Export-Package: de.fhdo.lemma.service.openapi
+Bundle-Vendor: University of Applied Sciences and Arts Dortmund
