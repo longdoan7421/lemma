@@ -8,9 +8,12 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.xtend.lib.annotations.AccessorType;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
 import org.eclipse.xtext.xbase.lib.Pair;
+import org.eclipse.xtext.xbase.lib.Pure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +28,21 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("all")
 public class LemmaGenerator {
+  /**
+   * OpenAPI schema which will be used as source for generation
+   */
   private OpenAPI openAPI;
   
-  private Logger logger;
+  /**
+   * SLF4j Logger
+   */
+  private Logger logger = LoggerFactory.getLogger(LemmaGenerator.class);
   
-  public LemmaGenerator() {
-    this.logger = LoggerFactory.getLogger(LemmaGenerator.class);
-  }
+  /**
+   * Log of all encountered exceptions during all transformations
+   */
+  @Accessors(AccessorType.PUBLIC_GETTER)
+  private List<String> transMsgs = CollectionLiterals.<String>newArrayList();
   
   /**
    * Checks whether there currently is a parsed in-memory to start the generation process
@@ -47,8 +58,8 @@ public class LemmaGenerator {
   }
   
   /**
-   * Takes a URL pointing to an openapi specification file (yaml or json) and parses it using
-   * the swagger openapi parsing framework. Returns a list of all encountered messages during
+   * Takes a URL pointing to an OpenAPI specification file (yaml or json) and parses it using
+   * the swagger OpenAPI parsing framework. Returns a list of all encountered messages during
    * the parsing.
    */
   public List<String> parse(final String openapi) {
@@ -84,17 +95,32 @@ public class LemmaGenerator {
   /**
    * Central methods which generates all models
    */
-  public void generateModels(final String genPath, final String dataFilename, final String serviceFilename, final String techFilename, final String prefixService) {
-    this.logger.info("Starting generation of LEMMA Data Model...");
-    final LemmaDataSubGenerator dataGenerator = new LemmaDataSubGenerator(this.openAPI, genPath, dataFilename);
-    DataModel _generate = dataGenerator.generate();
-    final Pair<String, DataModel> dataModel = Pair.<String, DataModel>of(dataFilename, _generate);
-    this.logger.info("Starting generation of LEMMA Technology Model...");
-    final LemmaTechnologySubGenerator technologyGenerator = new LemmaTechnologySubGenerator(this.openAPI, genPath, techFilename);
-    Technology _generate_1 = technologyGenerator.generate();
-    final Pair<String, Technology> techModel = Pair.<String, Technology>of(techFilename, _generate_1);
-    this.logger.info("Starting generation of LEMMA Service Model...");
-    final LemmaServiceSubGenerator serviceGenerator = new LemmaServiceSubGenerator(this.openAPI, dataModel, techModel, genPath, serviceFilename);
-    serviceGenerator.generate(prefixService);
+  public boolean generateModels(final String genPath, final String dataFilename, final String serviceFilename, final String techFilename, final String prefixService) {
+    boolean _xblockexpression = false;
+    {
+      this.logger.info("Starting generation of LEMMA Data Model...");
+      final LemmaDataSubGenerator dataGenerator = new LemmaDataSubGenerator(this.openAPI, genPath, dataFilename);
+      DataModel _generate = dataGenerator.generate();
+      final Pair<String, DataModel> dataModel = Pair.<String, DataModel>of(dataFilename, _generate);
+      this.logger.debug("Adding encountered messages to log.");
+      this.transMsgs.addAll(dataGenerator.getTransMsgs());
+      this.logger.info("Starting generation of LEMMA Technology Model...");
+      final LemmaTechnologySubGenerator technologyGenerator = new LemmaTechnologySubGenerator(this.openAPI, genPath, techFilename);
+      Technology _generate_1 = technologyGenerator.generate();
+      final Pair<String, Technology> techModel = Pair.<String, Technology>of(techFilename, _generate_1);
+      this.logger.debug("Adding encountered messages to log.");
+      this.transMsgs.addAll(technologyGenerator.getTransMsgs());
+      this.logger.info("Starting generation of LEMMA Service Model...");
+      final LemmaServiceSubGenerator serviceGenerator = new LemmaServiceSubGenerator(this.openAPI, dataModel, techModel, genPath, serviceFilename);
+      serviceGenerator.generate(prefixService);
+      this.logger.debug("Adding encountered messages to log.");
+      _xblockexpression = this.transMsgs.addAll(serviceGenerator.getTransMsgs());
+    }
+    return _xblockexpression;
+  }
+  
+  @Pure
+  public List<String> getTransMsgs() {
+    return this.transMsgs;
   }
 }

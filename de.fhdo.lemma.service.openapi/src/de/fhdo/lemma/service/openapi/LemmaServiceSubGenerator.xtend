@@ -28,6 +28,7 @@ import java.util.ArrayList
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.apache.commons.lang3.NotImplementedException
+import org.eclipse.xtend.lib.annotations.Accessors
 
 /**
  * This class is responsible for handling the generation of a LEMMA service model from an
@@ -51,6 +52,10 @@ class LemmaServiceSubGenerator {
     val DEFAULT_PROTOCOL = "rest"
     /** OpenAPI schema which will be used as source for generation. */
     OpenAPI openAPI
+
+    /** Log of all encountered exceptions during the data transformation */
+    @Accessors(PUBLIC_GETTER) val transMsgs = <String>newArrayList
+
     /** SLF4j Logger */
     val static logger = LoggerFactory.getLogger(LemmaServiceSubGenerator);
     /** Contains the previous generated OpenApi <italic>LEMMA Data Model</italic>

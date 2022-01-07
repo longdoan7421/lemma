@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.media.Schema
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import de.fhdo.lemma.data.DataModel
+import org.eclipse.xtend.lib.annotations.Accessors
 
 /**
  * This class is responsible for handling the generation of a LEMMA data model from an
@@ -29,6 +30,7 @@ class LemmaDataSubGenerator {
      * name while the value contains the actual list structure created.
      */
     val createdListStructures = <String, ListType>newHashMap
+
     /** Factory to actually create and manipulate a LEMMA DataModel */
     val DATA_FACTORY = DataFactory.eINSTANCE
     /** Predefined instances of the data model, version, and context
@@ -37,12 +39,18 @@ class LemmaDataSubGenerator {
     val myDataModel = DATA_FACTORY.createDataModel
     val myVersion = DATA_FACTORY.createVersion
     val myContext = DATA_FACTORY.createContext
-    /** Seperator is used to build the full qualified names during the generation */
-    val seperator = "."
+
+    /** Separator is used to build the full qualified names during the generation */
+    val separator = "."
+
     /** OpenAPI schema which will be used as source for generation */
     val OpenAPI openAPI
+
+    /** Log of all encountered exceptions during the data transformation */
+    @Accessors(PUBLIC_GETTER) val transMsgs = <String>newArrayList
     /** SLF4j Logger */
     val static logger = LoggerFactory.getLogger(LemmaDataSubGenerator)
+
     /** Location where the generated file is written */
     val String targetFolder
 
@@ -87,18 +95,26 @@ class LemmaDataSubGenerator {
     def DataStructure getOrCreateDataStructure(
         Context c, String name, Schema schema
     ) {
-        var foundObject = findDataStructure(c, StringUtils.capitalize(name))
-        if (foundObject === null) {
-            val newDataStructure = DATA_FACTORY.createDataStructure
-            newDataStructure.name = StringUtils.capitalize(name)
-            c.complexTypes.add(newDataStructure)
-            addDataFieldsToDataStructure(newDataStructure, name, schema)
-            createdDataStructures.put(
-                newDataStructure.buildQualifiedName(seperator), newDataStructure
-            )
-            return newDataStructure
-        } else {
-            return foundObject
+        try {
+            var foundObject = findDataStructure(c, StringUtils.capitalize(name))
+            if (foundObject === null) {
+                val newDataStructure = DATA_FACTORY.createDataStructure
+                newDataStructure.name = StringUtils.capitalize(name)
+                c.complexTypes.add(newDataStructure)
+                addDataFieldsToDataStructure(newDataStructure, name, schema)
+                createdDataStructures.put(
+                    newDataStructure.buildQualifiedName(separator), newDataStructure
+                )
+                return newDataStructure
+            } else {
+                return foundObject
+            }
+        } catch (Exception e) {
+            transMsgs.add(
+                '''Error for DataStructure «name», structure is skipped.
+                For details access debug log.''')
+            logger.debug(e.message)
+            return null
         }
     }
 
@@ -110,7 +126,7 @@ class LemmaDataSubGenerator {
             c.complexTypes.add(newListStructure)
             addDataFieldsToListStructure(newListStructure, name, schema)
             createdListStructures.put(
-                newListStructure.buildQualifiedName(seperator), newListStructure
+                newListStructure.buildQualifiedName(separator), newListStructure
             )
             return newListStructure
         } else {
@@ -186,12 +202,12 @@ class LemmaDataSubGenerator {
     }
 
     def DataStructure findDataStructure(Context context, String name) {
-        val searchName = '''«context.buildQualifiedName(seperator)».«name»'''
+        val searchName = '''«context.buildQualifiedName(separator)».«name»'''
         return createdDataStructures.get(searchName)
     }
 
     def ListType findListStructure(Context context, String name) {
-        val searchName = '''«context.buildQualifiedName(seperator)».«name»'''
+        val searchName = '''«context.buildQualifiedName(separator)».«name»'''
         return createdListStructures.get(searchName)
     }
 }

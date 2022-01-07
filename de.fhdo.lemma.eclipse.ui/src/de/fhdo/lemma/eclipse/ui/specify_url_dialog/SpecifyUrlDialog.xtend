@@ -19,30 +19,33 @@ import java.net.URL
 import java.net.MalformedURLException
 import org.eclipse.core.resources.ResourcesPlugin
 import de.fhdo.lemma.service.openapi.LemmaGenerator
+import org.eclipse.xtend.lib.annotations.Accessors
 
+/**
+ * The dialog for the transformation of OpenAPI specifications to LEMMA models.
+ *
+ * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
+ */
 class SpecifyUrlDialog extends TitleAreaDialog {
     static val MIN_DIALOG_WIDTH = 500
     static val MIN_DIALOG_HEIGHT = 250
+
     Text txtUrl
-
     Text txtTargetLocation
-
     Text txtDataModelName
-
     Text txtServiceModelName
-
     Text txtTechnologyModelName
-
-    public URL fetchUrl
-    public String targetLocation
-    public String dataName
-    public String serviceName
-    public String servicePrefix
-    public String technologyName
+    Text txtServicePrefix
 
     Button btnBrowseLocation
 
-    Text txtServicePrefix
+    @Accessors(PUBLIC_GETTER) URL fetchUrl
+
+    String targetLoc
+    String dataName
+    String servName
+    String servPre
+    String techName
 
     new(Shell parentShell) {
         super(parentShell)
@@ -59,16 +62,21 @@ class SpecifyUrlDialog extends TitleAreaDialog {
                 MessageDialog.openInformation(this.shell, "Parsing Report",
                     '''«FOR msg : parsingMessages»
                     «msg»
-                    «ENDFOR»'''
-                )
+                    «ENDFOR»''')
                 if(generator.isParsed){
-                generator.generateModels('''«targetLocation»/''', '''«dataName».data''',
-                    '''«serviceName».services''','''«technologyName».technology''', servicePrefix)
+                    generator.generateModels('''«targetLoc»/''', '''«dataName».data''',
+                        '''«servName».services''','''«techName».technology''', servPre)
+                        MessageDialog.openInformation(this.shell, "Transformation Report",
+                            '''
+                            The transformation was a success!
+                            Encountered problems (empty if none):
+                            «FOR msg : generator.transMsgs»
+                            «msg»
+                            «ENDFOR»''')
                 } else {
                     MessageDialog.openError(this.shell, "Parsing Error",
                         '''It was not possible to generate an in-memory '''+
-                        '''representation of the file located at «fetchUrl.toString» .'''
-                    )
+                        '''representation of the file located at «fetchUrl.toString» .''')
                 }
 
             } catch (Exception ex) {
@@ -237,14 +245,14 @@ class SpecifyUrlDialog extends TitleAreaDialog {
             )
             return false
         }
-            this.targetLocation = txtTargetLocation.getText
+            this.targetLoc = txtTargetLocation.getText
             this.dataName = txtDataModelName.getText
-            this.serviceName = txtServiceModelName.getText
-            this.technologyName = txtTechnologyModelName.text
-            this.servicePrefix = txtServicePrefix.text
-        if(!this.targetLocation.trim.isEmpty && !this.dataName.trim.isEmpty &&
-            !this.serviceName.trim.isEmpty && !this.technologyName.trim.isEmpty &&
-            !this.servicePrefix.trim.isEmpty
+            this.servName = txtServiceModelName.getText
+            this.techName = txtTechnologyModelName.text
+            this.servPre = txtServicePrefix.text
+        if(!this.targetLoc.trim.isEmpty && !this.dataName.trim.isEmpty &&
+            !this.servName.trim.isEmpty && !this.techName.trim.isEmpty &&
+            !this.servPre.trim.isEmpty
         ) {
             return true
         } else {

@@ -22,12 +22,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.eclipse.xtend.lib.annotations.AccessorType;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.CollectionExtensions;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
+import org.eclipse.xtext.xbase.lib.Pure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +62,12 @@ public class LemmaTechnologySubGenerator {
    * OpenAPI schema which will be used as source for generation.
    */
   private OpenAPI openApi;
+  
+  /**
+   * Log of all encountered exceptions during the data transformation
+   */
+  @Accessors(AccessorType.PUBLIC_GETTER)
+  private final ArrayList<String> transMsgs = CollectionLiterals.<String>newArrayList();
   
   /**
    * SLF4j Logger
@@ -256,5 +265,10 @@ public class LemmaTechnologySubGenerator {
     ret.setDefault(default_);
     ret.getBasicBuiltinPrimitiveTypes().add(type);
     return ret;
+  }
+  
+  @Pure
+  public ArrayList<String> getTransMsgs() {
+    return this.transMsgs;
   }
 }

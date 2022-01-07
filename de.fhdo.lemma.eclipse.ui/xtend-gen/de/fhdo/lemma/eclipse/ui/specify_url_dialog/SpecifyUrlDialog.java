@@ -23,9 +23,17 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.xtend.lib.annotations.AccessorType;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.Exceptions;
+import org.eclipse.xtext.xbase.lib.Pure;
 
+/**
+ * The dialog for the transformation of OpenAPI specifications to LEMMA models.
+ * 
+ * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
+ */
 @SuppressWarnings("all")
 public class SpecifyUrlDialog extends TitleAreaDialog {
   private static final int MIN_DIALOG_WIDTH = 500;
@@ -42,21 +50,22 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
   
   private Text txtTechnologyModelName;
   
-  public URL fetchUrl;
-  
-  public String targetLocation;
-  
-  public String dataName;
-  
-  public String serviceName;
-  
-  public String servicePrefix;
-  
-  public String technologyName;
+  private Text txtServicePrefix;
   
   private Button btnBrowseLocation;
   
-  private Text txtServicePrefix;
+  @Accessors(AccessorType.PUBLIC_GETTER)
+  private URL fetchUrl;
+  
+  private String targetLoc;
+  
+  private String dataName;
+  
+  private String servName;
+  
+  private String servPre;
+  
+  private String techName;
   
   public SpecifyUrlDialog(final Shell parentShell) {
     super(parentShell);
@@ -85,38 +94,52 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
         boolean _isParsed = generator.isParsed();
         if (_isParsed) {
           StringConcatenation _builder_1 = new StringConcatenation();
-          _builder_1.append(this.targetLocation);
+          _builder_1.append(this.targetLoc);
           _builder_1.append("/");
           StringConcatenation _builder_2 = new StringConcatenation();
           _builder_2.append(this.dataName);
           _builder_2.append(".data");
           StringConcatenation _builder_3 = new StringConcatenation();
-          _builder_3.append(this.serviceName);
+          _builder_3.append(this.servName);
           _builder_3.append(".services");
           StringConcatenation _builder_4 = new StringConcatenation();
-          _builder_4.append(this.technologyName);
+          _builder_4.append(this.techName);
           _builder_4.append(".technology");
-          generator.generateModels(_builder_1.toString(), _builder_2.toString(), _builder_3.toString(), _builder_4.toString(), this.servicePrefix);
-        } else {
+          generator.generateModels(_builder_1.toString(), _builder_2.toString(), _builder_3.toString(), _builder_4.toString(), this.servPre);
           Shell _shell_1 = this.getShell();
           StringConcatenation _builder_5 = new StringConcatenation();
-          _builder_5.append("It was not possible to generate an in-memory ");
+          _builder_5.append("The transformation was a success!");
+          _builder_5.newLine();
+          _builder_5.append("Encountered problems (empty if none):");
+          _builder_5.newLine();
+          {
+            List<String> _transMsgs = generator.getTransMsgs();
+            for(final String msg_1 : _transMsgs) {
+              _builder_5.append(msg_1);
+              _builder_5.newLineIfNotEmpty();
+            }
+          }
+          MessageDialog.openInformation(_shell_1, "Transformation Report", _builder_5.toString());
+        } else {
+          Shell _shell_2 = this.getShell();
           StringConcatenation _builder_6 = new StringConcatenation();
-          _builder_6.append("representation of the file located at ");
+          _builder_6.append("It was not possible to generate an in-memory ");
+          StringConcatenation _builder_7 = new StringConcatenation();
+          _builder_7.append("representation of the file located at ");
           String _string = this.fetchUrl.toString();
-          _builder_6.append(_string);
-          _builder_6.append(" .");
-          String _plus = (_builder_5.toString() + _builder_6);
-          MessageDialog.openError(_shell_1, "Parsing Error", _plus);
+          _builder_7.append(_string);
+          _builder_7.append(" .");
+          String _plus = (_builder_6.toString() + _builder_7);
+          MessageDialog.openError(_shell_2, "Parsing Error", _plus);
         }
       } catch (final Throwable _t) {
         if (_t instanceof Exception) {
           final Exception ex = (Exception)_t;
-          Shell _shell_2 = this.getShell();
-          StringConcatenation _builder_7 = new StringConcatenation();
-          _builder_7.append("An error occured during extraction...");
+          Shell _shell_3 = this.getShell();
+          StringConcatenation _builder_8 = new StringConcatenation();
+          _builder_8.append("An error occured during extraction...");
           ex.printStackTrace();
-          MessageDialog.openError(_shell_2, "Error", _builder_7.toString());
+          MessageDialog.openError(_shell_3, "Error", _builder_8.toString());
         } else {
           throw Exceptions.sneakyThrow(_t);
         }
@@ -297,14 +320,14 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
       }
     }
     this.fetchUrl = _xtrycatchfinallyexpression;
-    this.targetLocation = this.txtTargetLocation.getText();
+    this.targetLoc = this.txtTargetLocation.getText();
     this.dataName = this.txtDataModelName.getText();
-    this.serviceName = this.txtServiceModelName.getText();
-    this.technologyName = this.txtTechnologyModelName.getText();
-    this.servicePrefix = this.txtServicePrefix.getText();
-    if ((((((!this.targetLocation.trim().isEmpty()) && (!this.dataName.trim().isEmpty())) && 
-      (!this.serviceName.trim().isEmpty())) && (!this.technologyName.trim().isEmpty())) && 
-      (!this.servicePrefix.trim().isEmpty()))) {
+    this.servName = this.txtServiceModelName.getText();
+    this.techName = this.txtTechnologyModelName.getText();
+    this.servPre = this.txtServicePrefix.getText();
+    if ((((((!this.targetLoc.trim().isEmpty()) && (!this.dataName.trim().isEmpty())) && 
+      (!this.servName.trim().isEmpty())) && (!this.techName.trim().isEmpty())) && 
+      (!this.servPre.trim().isEmpty()))) {
       return true;
     } else {
       Shell _shell = this.getShell();
@@ -332,5 +355,10 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
     int _max = Math.max(this.convertHorizontalDLUsToPixels(SpecifyUrlDialog.MIN_DIALOG_WIDTH), shellSize.x);
     int _max_1 = Math.max(this.convertVerticalDLUsToPixels(SpecifyUrlDialog.MIN_DIALOG_HEIGHT), shellSize.y);
     return new Point(_max, _max_1);
+  }
+  
+  @Pure
+  public URL getFetchUrl() {
+    return this.fetchUrl;
   }
 }

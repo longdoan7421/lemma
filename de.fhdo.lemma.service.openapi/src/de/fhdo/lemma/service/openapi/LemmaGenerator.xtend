@@ -6,6 +6,7 @@ import io.swagger.v3.parser.core.models.ParseOptions
 import java.util.List
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.eclipse.xtend.lib.annotations.Accessors
 
 /**
  * This class is the central entry point for the generation of LEMMA models from
@@ -17,21 +18,22 @@ import org.slf4j.LoggerFactory
  * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
  */
 class LemmaGenerator {
-
+    /** OpenAPI schema which will be used as source for generation */
     OpenAPI openAPI
-    Logger logger
 
-    new() {
-        logger = LoggerFactory.getLogger(LemmaGenerator)
-    }
+    /** SLF4j Logger */
+    Logger logger = LoggerFactory.getLogger(LemmaGenerator)
+
+    /** Log of all encountered exceptions during all transformations */
+    @Accessors(PUBLIC_GETTER) List<String> transMsgs = <String>newArrayList
 
     /** Checks whether there currently is a parsed in-memory to start the generation process */
     def boolean isParsed() {
         if(openAPI === null) false else true
     }
 
-     /** Takes a URL pointing to an openapi specification file (yaml or json) and parses it using
-      * the swagger openapi parsing framework. Returns a list of all encountered messages during
+     /** Takes a URL pointing to an OpenAPI specification file (yaml or json) and parses it using
+      * the swagger OpenAPI parsing framework. Returns a list of all encountered messages during
       * the parsing.
       */
     def List<String> parse(String openapi) {
@@ -64,14 +66,20 @@ class LemmaGenerator {
         logger.info("Starting generation of LEMMA Data Model...")
         val dataGenerator = new LemmaDataSubGenerator(openAPI, genPath, dataFilename)
         val dataModel = dataFilename -> dataGenerator.generate
+        logger.debug("Adding encountered messages to log.")
+        transMsgs.addAll(dataGenerator.transMsgs)
 
         logger.info("Starting generation of LEMMA Technology Model...")
         val technologyGenerator = new LemmaTechnologySubGenerator(openAPI, genPath, techFilename)
         val techModel = techFilename -> technologyGenerator.generate
+        logger.debug("Adding encountered messages to log.")
+        transMsgs.addAll(technologyGenerator.transMsgs)
 
         logger.info("Starting generation of LEMMA Service Model...")
         val serviceGenerator =
             new LemmaServiceSubGenerator(openAPI, dataModel, techModel, genPath, serviceFilename)
         serviceGenerator.generate(prefixService)
+        logger.debug("Adding encountered messages to log.")
+        transMsgs.addAll(serviceGenerator.transMsgs)
     }
 }

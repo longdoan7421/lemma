@@ -12,13 +12,17 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.xtend.lib.annotations.AccessorType;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Exceptions;
+import org.eclipse.xtext.xbase.lib.Pure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,14 +62,20 @@ public class LemmaDataSubGenerator {
   private final Context myContext = this.DATA_FACTORY.createContext();
   
   /**
-   * Seperator is used to build the full qualified names during the generation
+   * Separator is used to build the full qualified names during the generation
    */
-  private final String seperator = ".";
+  private final String separator = ".";
   
   /**
    * OpenAPI schema which will be used as source for generation
    */
   private final OpenAPI openAPI;
+  
+  /**
+   * Log of all encountered exceptions during the data transformation
+   */
+  @Accessors(AccessorType.PUBLIC_GETTER)
+  private final ArrayList<String> transMsgs = CollectionLiterals.<String>newArrayList();
   
   /**
    * SLF4j Logger
@@ -131,17 +141,35 @@ public class LemmaDataSubGenerator {
   }
   
   public DataStructure getOrCreateDataStructure(final Context c, final String name, final Schema schema) {
-    DataStructure foundObject = this.findDataStructure(c, StringUtils.capitalize(name));
-    if ((foundObject == null)) {
-      final DataStructure newDataStructure = this.DATA_FACTORY.createDataStructure();
-      newDataStructure.setName(StringUtils.capitalize(name));
-      c.getComplexTypes().add(newDataStructure);
-      this.addDataFieldsToDataStructure(newDataStructure, name, schema);
-      this.createdDataStructures.put(
-        newDataStructure.buildQualifiedName(this.seperator), newDataStructure);
-      return newDataStructure;
-    } else {
-      return foundObject;
+    try {
+      DataStructure foundObject = this.findDataStructure(c, StringUtils.capitalize(name));
+      if ((foundObject == null)) {
+        final DataStructure newDataStructure = this.DATA_FACTORY.createDataStructure();
+        newDataStructure.setName(StringUtils.capitalize(name));
+        c.getComplexTypes().add(newDataStructure);
+        this.addDataFieldsToDataStructure(newDataStructure, name, schema);
+        this.createdDataStructures.put(
+          newDataStructure.buildQualifiedName(this.separator), newDataStructure);
+        return newDataStructure;
+      } else {
+        return foundObject;
+      }
+    } catch (final Throwable _t) {
+      if (_t instanceof Exception) {
+        final Exception e = (Exception)_t;
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("Error for DataStructure ");
+        _builder.append(name);
+        _builder.append(", structure is skipped.");
+        _builder.newLineIfNotEmpty();
+        _builder.append("                ");
+        _builder.append("For details access debug log.");
+        this.transMsgs.add(_builder.toString());
+        LemmaDataSubGenerator.logger.debug(e.getMessage());
+        return null;
+      } else {
+        throw Exceptions.sneakyThrow(_t);
+      }
     }
   }
   
@@ -157,7 +185,7 @@ public class LemmaDataSubGenerator {
       c.getComplexTypes().add(newListStructure);
       this.addDataFieldsToListStructure(newListStructure, name, schema);
       this.createdListStructures.put(
-        newListStructure.buildQualifiedName(this.seperator), newListStructure);
+        newListStructure.buildQualifiedName(this.separator), newListStructure);
       return newListStructure;
     } else {
       return foundObject;
@@ -252,7 +280,7 @@ public class LemmaDataSubGenerator {
   
   public DataStructure findDataStructure(final Context context, final String name) {
     StringConcatenation _builder = new StringConcatenation();
-    String _buildQualifiedName = context.buildQualifiedName(this.seperator);
+    String _buildQualifiedName = context.buildQualifiedName(this.separator);
     _builder.append(_buildQualifiedName);
     _builder.append(".");
     _builder.append(name);
@@ -262,11 +290,16 @@ public class LemmaDataSubGenerator {
   
   public ListType findListStructure(final Context context, final String name) {
     StringConcatenation _builder = new StringConcatenation();
-    String _buildQualifiedName = context.buildQualifiedName(this.seperator);
+    String _buildQualifiedName = context.buildQualifiedName(this.separator);
     _builder.append(_buildQualifiedName);
     _builder.append(".");
     _builder.append(name);
     final String searchName = _builder.toString();
     return this.createdListStructures.get(searchName);
+  }
+  
+  @Pure
+  public ArrayList<String> getTransMsgs() {
+    return this.transMsgs;
   }
 }

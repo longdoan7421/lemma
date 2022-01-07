@@ -7,7 +7,6 @@ import de.fhdo.lemma.data.DataFactory;
 import de.fhdo.lemma.data.DataField;
 import de.fhdo.lemma.data.DataModel;
 import de.fhdo.lemma.data.ListType;
-import de.fhdo.lemma.data.Type;
 import de.fhdo.lemma.data.Version;
 import de.fhdo.lemma.service.ApiOperationComment;
 import de.fhdo.lemma.service.Endpoint;
@@ -50,6 +49,8 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.xtend.lib.annotations.AccessorType;
+import org.eclipse.xtend.lib.annotations.Accessors;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
@@ -59,6 +60,7 @@ import org.eclipse.xtext.xbase.lib.InputOutput;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
 import org.eclipse.xtext.xbase.lib.IteratorExtensions;
 import org.eclipse.xtext.xbase.lib.Pair;
+import org.eclipse.xtext.xbase.lib.Pure;
 import org.eclipse.xtext.xbase.lib.StringExtensions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +100,12 @@ public class LemmaServiceSubGenerator {
    * OpenAPI schema which will be used as source for generation.
    */
   private OpenAPI openAPI;
+  
+  /**
+   * Log of all encountered exceptions during the data transformation
+   */
+  @Accessors(AccessorType.PUBLIC_GETTER)
+  private final ArrayList<String> transMsgs = CollectionLiterals.<String>newArrayList();
   
   /**
    * SLF4j Logger
@@ -786,7 +794,7 @@ public class LemmaServiceSubGenerator {
         throw Exceptions.sneakyThrow(_t);
       }
     }
-    Type _type = importedType.getType();
+    Object _type = importedType.getType();
     boolean _tripleNotEquals = (_type != null);
     if (_tripleNotEquals) {
       return importedType;
@@ -819,12 +827,17 @@ public class LemmaServiceSubGenerator {
         throw Exceptions.sneakyThrow(_t);
       }
     }
-    Type _type = importedType.getType();
+    Object _type = importedType.getType();
     boolean _tripleNotEquals = (_type != null);
     if (_tripleNotEquals) {
       return importedType;
     } else {
       return null;
     }
+  }
+  
+  @Pure
+  public ArrayList<String> getTransMsgs() {
+    return this.transMsgs;
   }
 }

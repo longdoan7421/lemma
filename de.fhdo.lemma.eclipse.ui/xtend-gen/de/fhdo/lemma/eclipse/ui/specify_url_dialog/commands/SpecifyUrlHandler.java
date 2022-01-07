@@ -38,7 +38,7 @@ public class SpecifyUrlHandler extends AbstractHandler {
     }
     Object _xifexpression = null;
     if ((dialogResult == Window.OK)) {
-      _xifexpression = InputOutput.<Object>println(dialog.fetchUrl);
+      _xifexpression = InputOutput.<Object>println(dialog.getFetchUrl());
     } else {
       _xifexpression = null;
     }

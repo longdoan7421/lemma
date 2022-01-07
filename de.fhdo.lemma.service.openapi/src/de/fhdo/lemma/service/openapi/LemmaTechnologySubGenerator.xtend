@@ -13,7 +13,7 @@ import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Operation
 import java.util.Set
 import de.fhdo.lemma.technology.ServiceAspect
-
+import org.eclipse.xtend.lib.annotations.Accessors
 
 /**
  * This class is responsible for handling the generation of a LEMMA technology model for the OpenAPI
@@ -32,6 +32,8 @@ class LemmaTechnologySubGenerator {
     val myTechModel = TECHNOLOGY_FACTORY.createTechnology
     /** OpenAPI schema which will be used as source for generation. */
     OpenAPI openApi
+    /** Log of all encountered exceptions during the data transformation */
+    @Accessors(PUBLIC_GETTER) val transMsgs = <String>newArrayList
     /** SLF4j Logger */
     val static logger = LoggerFactory.getLogger(LemmaServiceSubGenerator);
     /** Location where the generated file is written */
