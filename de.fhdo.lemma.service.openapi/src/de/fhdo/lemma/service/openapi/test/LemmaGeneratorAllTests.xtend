@@ -8,7 +8,7 @@ import de.fhdo.lemma.service.openapi.test.ValidationTest
 
 
 @RunWith(Suite)
-@SuiteClasses(ValidationTest, DataGeneratorTest)
+@SuiteClasses(ValidationTest, GeneratorsTest)
 class LemmaGeneratorAllTests {
 
 }

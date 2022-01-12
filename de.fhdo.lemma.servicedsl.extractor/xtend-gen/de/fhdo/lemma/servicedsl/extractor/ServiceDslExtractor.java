@@ -3,7 +3,6 @@ package de.fhdo.lemma.servicedsl.extractor;
 import com.google.common.base.Objects;
 import de.fhdo.lemma.data.ComplexType;
 import de.fhdo.lemma.data.PrimitiveType;
-import de.fhdo.lemma.data.Type;
 import de.fhdo.lemma.service.ApiOperationComment;
 import de.fhdo.lemma.service.Endpoint;
 import de.fhdo.lemma.service.Import;
@@ -562,23 +561,8 @@ public class ServiceDslExtractor {
    * Extract Parameter
    */
   private String generateType(final Parameter parameter) {
-    String _xifexpression = null;
-    PrimitiveType _primitiveType = parameter.getPrimitiveType();
-    boolean _tripleNotEquals = (_primitiveType != null);
-    if (_tripleNotEquals) {
-      _xifexpression = this.generate(parameter.getPrimitiveType());
-    } else {
-      String _xifexpression_1 = null;
-      ImportedType _importedType = parameter.getImportedType();
-      boolean _tripleNotEquals_1 = (_importedType != null);
-      if (_tripleNotEquals_1) {
-        _xifexpression_1 = this.generate(parameter.getImportedType());
-      } else {
-        _xifexpression_1 = null;
-      }
-      _xifexpression = _xifexpression_1;
-    }
-    return _xifexpression;
+    throw new Error("Unresolved compilation problems:"
+      + "\nType mismatch: cannot convert from Object to Import");
   }
   
   /**
@@ -649,7 +633,7 @@ public class ServiceDslExtractor {
    * Extract ImportedType
    */
   private String generate(final ImportedType importedType) {
-    final Type type = importedType.getType();
+    final Object type = importedType.getType();
     String _switchResult = null;
     boolean _matched = false;
     if (type instanceof PrimitiveType) {
