@@ -51,6 +51,7 @@
         <intermediate-data-metamodel-version>${project.version}</intermediate-data-metamodel-version>
         <lemma-utils-version>${project.version}</lemma-utils-version>
         <lemma-ui-utils-version>${project.version}</lemma-ui-utils-version>
+        <lsp4j-version>0.10.0</lsp4j-version>
         <mapping-extractor-version>${project.version}</mapping-extractor-version>
         <mapping-metamodel-version>${project.version}</mapping-metamodel-version>
         <maven-clean-plugin-version>3.1.0</maven-clean-plugin-version>
@@ -68,6 +69,12 @@
             <id>eclipse</id>
             <layout>p2</layout>
             <url>http://download.eclipse.org/releases/${eclipse-version}/</url>
+        </repository>
+
+        <repository>
+            <id>lsp4j</id>
+            <layout>p2</layout>
+            <url>https://download.eclipse.org/lsp4j/updates/releases/${lsp4j-version}</url>
         </repository>
     </repositories>
 

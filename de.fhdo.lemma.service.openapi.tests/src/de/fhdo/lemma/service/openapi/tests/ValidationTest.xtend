@@ -1,4 +1,4 @@
-package de.fhdo.lemma.service.openapi.test
+package de.fhdo.lemma.service.openapi.tests
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue

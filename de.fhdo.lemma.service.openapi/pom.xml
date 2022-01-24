@@ -84,22 +84,12 @@
             <version>${mapping-metamodel-version}</version>
         </dependency>
 
-        <!-- External Maven Dependencies copied into the external-lib folder -->
+        <!-- External Maven Dependencies copied into the lib folder -->
 
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
-        </dependency>
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser</artifactId>
-            <version>2.0.28</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>2.0.29</version>
         </dependency>
 
         <!-- ONLY FOR DEVELOPMENT PURPOSE, DO NOT DEPLOY -->
@@ -175,7 +165,7 @@
                         <descriptor>assembly/assembly.xml</descriptor>
                     </descriptors>
                     <outputDirectory>${basedir}</outputDirectory>
-                    <finalName>external-lib</finalName>
+                    <finalName>lib</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
 

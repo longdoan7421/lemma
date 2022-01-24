@@ -1,4 +1,4 @@
-package de.fhdo.lemma.service.openapi.test
+package de.fhdo.lemma.service.openapi.tests
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
