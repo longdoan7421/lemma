@@ -9,8 +9,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>../de.fhdo.lemma.service.openapi.target</module>
         <module>../de.fhdo.lemma.service.openapi</module>
+        <module>../de.fhdo.lemma.service.openapi.target</module>
     </modules>
 
     <profiles>
