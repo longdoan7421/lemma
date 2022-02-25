@@ -1,6 +1,5 @@
 package de.fhdo.lemma.service.openapi.tests;
 
-import de.fhdo.lemma.service.openapi.test.ValidationTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 

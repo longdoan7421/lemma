@@ -111,7 +111,24 @@ public class LemmaDataSubGenerator {
       }
       if (_schemas!=null) {
         final BiConsumer<String, Schema> _function = (String key, Schema value) -> {
-          this.getOrCreateDataStructure(this.myContext, key, value);
+          try {
+            this.getOrCreateDataStructure(this.myContext, key, value);
+          } catch (final Throwable _t) {
+            if (_t instanceof Exception) {
+              final Exception e = (Exception)_t;
+              StringConcatenation _builder = new StringConcatenation();
+              _builder.append("Error for DataStructure ");
+              _builder.append(key);
+              _builder.append(", structure is skipped.");
+              _builder.newLineIfNotEmpty();
+              _builder.append("                        ");
+              _builder.append("For details access debug log.");
+              this.transMsgs.add(_builder.toString());
+              LemmaDataSubGenerator.logger.debug(e.getMessage());
+            } else {
+              throw Exceptions.sneakyThrow(_t);
+            }
+          }
         };
         _schemas.forEach(_function);
       }
@@ -124,7 +141,7 @@ public class LemmaDataSubGenerator {
         _builder.append(this.targetFolder);
         LemmaDataSubGenerator.logger.info(_builder.toString());
       } else {
-        throw new Exception("Data model generation failed :(");
+        throw new Exception("Data model generation failed.");
       }
       return this.myDataModel;
     } catch (Throwable _e) {
@@ -141,35 +158,17 @@ public class LemmaDataSubGenerator {
   }
   
   public DataStructure getOrCreateDataStructure(final Context c, final String name, final Schema schema) {
-    try {
-      DataStructure foundObject = this.findDataStructure(c, StringUtils.capitalize(name));
-      if ((foundObject == null)) {
-        final DataStructure newDataStructure = this.DATA_FACTORY.createDataStructure();
-        newDataStructure.setName(StringUtils.capitalize(name));
-        c.getComplexTypes().add(newDataStructure);
-        this.addDataFieldsToDataStructure(newDataStructure, name, schema);
-        this.createdDataStructures.put(
-          newDataStructure.buildQualifiedName(this.separator), newDataStructure);
-        return newDataStructure;
-      } else {
-        return foundObject;
-      }
-    } catch (final Throwable _t) {
-      if (_t instanceof Exception) {
-        final Exception e = (Exception)_t;
-        StringConcatenation _builder = new StringConcatenation();
-        _builder.append("Error for DataStructure ");
-        _builder.append(name);
-        _builder.append(", structure is skipped.");
-        _builder.newLineIfNotEmpty();
-        _builder.append("                ");
-        _builder.append("For details access debug log.");
-        this.transMsgs.add(_builder.toString());
-        LemmaDataSubGenerator.logger.debug(e.getMessage());
-        return null;
-      } else {
-        throw Exceptions.sneakyThrow(_t);
-      }
+    DataStructure foundObject = this.findDataStructure(c, StringUtils.capitalize(name));
+    if ((foundObject == null)) {
+      final DataStructure newDataStructure = this.DATA_FACTORY.createDataStructure();
+      newDataStructure.setName(StringUtils.capitalize(name));
+      c.getComplexTypes().add(newDataStructure);
+      this.addDataFieldsToDataStructure(newDataStructure, name, schema);
+      this.createdDataStructures.put(
+        newDataStructure.buildQualifiedName(this.separator), newDataStructure);
+      return newDataStructure;
+    } else {
+      return foundObject;
     }
   }
   

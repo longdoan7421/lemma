@@ -164,8 +164,25 @@ public class LemmaServiceSubGenerator {
     List<Tag> _tags = this.openAPI.getTags();
     if (_tags!=null) {
       final Consumer<Tag> _function = (Tag tag) -> {
-        if (interfaces!=null) {
-          interfaces.add(this.createInterface(myMicroservice, tag.getName()));
+        try {
+          if (interfaces!=null) {
+            interfaces.add(this.createInterface(myMicroservice, tag.getName()));
+          }
+        } catch (final Throwable _t) {
+          if (_t instanceof Exception) {
+            final Exception e = (Exception)_t;
+            StringConcatenation _builder_1 = new StringConcatenation();
+            _builder_1.append("Error while creating interface ");
+            _builder_1.append(tag);
+            _builder_1.append(". Interface is skipped.");
+            _builder_1.newLineIfNotEmpty();
+            _builder_1.append("                    ");
+            _builder_1.append("For details access debug log.");
+            this.transMsgs.add(_builder_1.toString());
+            LemmaServiceSubGenerator.logger.debug(e.getMessage());
+          } else {
+            throw Exceptions.sneakyThrow(_t);
+          }
         }
       };
       _tags.forEach(_function);
@@ -177,7 +194,24 @@ public class LemmaServiceSubGenerator {
     }
     LemmaServiceSubGenerator.logger.debug("Creating interface operations for each path item...");
     final BiConsumer<String, PathItem> _function_1 = (String key, PathItem value) -> {
-      this.createOperations(interfaces, key, value);
+      try {
+        this.createOperations(interfaces, key, value);
+      } catch (final Throwable _t) {
+        if (_t instanceof Exception) {
+          final Exception e = (Exception)_t;
+          StringConcatenation _builder_1 = new StringConcatenation();
+          _builder_1.append("Error while creating operation ");
+          _builder_1.append(key);
+          _builder_1.append(". Operation is skipped.");
+          _builder_1.newLineIfNotEmpty();
+          _builder_1.append("                    ");
+          _builder_1.append("For details access debug log.");
+          this.transMsgs.add(_builder_1.toString());
+          LemmaServiceSubGenerator.logger.debug(e.getMessage());
+        } else {
+          throw Exceptions.sneakyThrow(_t);
+        }
+      }
     };
     this.openAPI.getPaths().forEach(_function_1);
     LemmaServiceSubGenerator.logger.debug("...Services created!");
@@ -189,7 +223,7 @@ public class LemmaServiceSubGenerator {
       _builder_1.append(this.targetFolder);
       LemmaServiceSubGenerator.logger.info(_builder_1.toString());
     } else {
-      LemmaServiceSubGenerator.logger.info("Service model generation failed :(");
+      LemmaServiceSubGenerator.logger.info("Service model generation failed. See debug for more info.");
     }
   }
   

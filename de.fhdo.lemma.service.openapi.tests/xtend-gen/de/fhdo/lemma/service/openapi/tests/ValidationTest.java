@@ -38,10 +38,13 @@ public class ValidationTest {
     parRes.forEach(_function);
     int _length = ((Object[])Conversions.unwrapArray(parRes, Object.class)).length;
     int _minus = (_length - 2);
-    Assert.assertEquals("Zero errors should be detected while parsing/validating", parRes.get(_minus), "No errors or warnings encountered!");
+    Assert.assertEquals("Zero errors should be detected while parsing/validating", 
+      parRes.get(_minus), "No errors or warnings encountered!");
     int _length_1 = ((Object[])Conversions.unwrapArray(parRes, Object.class)).length;
     int _minus_1 = (_length_1 - 1);
-    Assert.assertNotEquals("Message Object must not be null while parsing", parRes.get(_minus_1), "There was an error generating the in memory model for the given URL :(");
+    Assert.assertNotEquals("Message Object must not be null while parsing", 
+      parRes.get(_minus_1), ("There was an error generating the" + 
+      "in memory model for the given URL :("));
   }
   
   @Test

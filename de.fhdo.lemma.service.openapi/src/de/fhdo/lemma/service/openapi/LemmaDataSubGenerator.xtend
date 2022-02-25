@@ -69,7 +69,16 @@ class LemmaDataSubGenerator {
         logger.debug("Creating data structures...")
 
         openAPI?.components?.schemas?.forEach[
-            key, value| getOrCreateDataStructure(myContext, key, value)
+            key, value | {
+                try {
+                    getOrCreateDataStructure(myContext, key, value)
+                } catch (Exception e) {
+                    transMsgs.add(
+                        '''Error for DataStructure «key», structure is skipped.
+                        For details access debug log.''')
+                    logger.debug(e.message)
+                }
+            }
         ]
         logger.debug("...data structures created!")
 
@@ -77,7 +86,7 @@ class LemmaDataSubGenerator {
             logger.info("Data model generation successful!")
             logger.info('''Model written to «targetFolder»''')
         } else
-            throw new Exception("Data model generation failed :(")
+            throw new Exception("Data model generation failed.")
         return myDataModel
     }
 
@@ -95,26 +104,18 @@ class LemmaDataSubGenerator {
     def DataStructure getOrCreateDataStructure(
         Context c, String name, Schema schema
     ) {
-        try {
-            var foundObject = findDataStructure(c, StringUtils.capitalize(name))
-            if (foundObject === null) {
-                val newDataStructure = DATA_FACTORY.createDataStructure
-                newDataStructure.name = StringUtils.capitalize(name)
-                c.complexTypes.add(newDataStructure)
-                addDataFieldsToDataStructure(newDataStructure, name, schema)
-                createdDataStructures.put(
-                    newDataStructure.buildQualifiedName(separator), newDataStructure
-                )
-                return newDataStructure
-            } else {
-                return foundObject
-            }
-        } catch (Exception e) {
-            transMsgs.add(
-                '''Error for DataStructure «name», structure is skipped.
-                For details access debug log.''')
-            logger.debug(e.message)
-            return null
+        var foundObject = findDataStructure(c, StringUtils.capitalize(name))
+        if (foundObject === null) {
+            val newDataStructure = DATA_FACTORY.createDataStructure
+            newDataStructure.name = StringUtils.capitalize(name)
+            c.complexTypes.add(newDataStructure)
+            addDataFieldsToDataStructure(newDataStructure, name, schema)
+            createdDataStructures.put(
+                newDataStructure.buildQualifiedName(separator), newDataStructure
+            )
+            return newDataStructure
+        } else {
+            return foundObject
         }
     }
 

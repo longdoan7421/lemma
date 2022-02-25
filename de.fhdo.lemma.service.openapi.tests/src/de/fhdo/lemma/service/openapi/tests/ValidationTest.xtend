@@ -31,8 +31,13 @@ class ValidationTest {
         val generator = new LemmaGenerator()
         val parRes = generator.parse(schemaLocation)
         parRes.forEach[logger.info(it)]
-        assertEquals("Zero errors should be detected while parsing/validating",parRes.get(parRes.length-2), "No errors or warnings encountered!")
-        assertNotEquals("Message Object must not be null while parsing", parRes.get(parRes.length-1), "There was an error generating the in memory model for the given URL :(")
+        assertEquals("Zero errors should be detected while parsing/validating",
+            parRes.get(parRes.length-2), "No errors or warnings encountered!"
+        )
+        assertNotEquals("Message Object must not be null while parsing",
+            parRes.get(parRes.length-1), "There was an error generating the" +
+            "in memory model for the given URL :("
+        )
     }
 
     @Test

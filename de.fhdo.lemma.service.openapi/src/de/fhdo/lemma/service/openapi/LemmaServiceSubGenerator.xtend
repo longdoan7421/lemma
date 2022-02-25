@@ -94,20 +94,37 @@ class LemmaServiceSubGenerator {
             '''«servicePrefix».«OpenApiUtil.removeInvalidCharsFromName(openAPI.info.title)»''')
         logger.debug("Adding interfaces...")
         val interfaces = <Interface>newArrayList
-        openAPI.tags?.forEach[tag|interfaces?.add(createInterface(myMicroservice, tag.name))]
+        openAPI.tags?.forEach[tag|
+            try {
+                interfaces?.add(createInterface(myMicroservice, tag.name))
+            } catch (Exception e) {
+                transMsgs.add(
+                    '''Error while creating interface «tag». Interface is skipped.
+                    For details access debug log.''')
+                logger.debug(e.message)
+            }
+        ]
         // If no interfaces can be generated from tags create a default Interface
         if (interfaces.size == 0) {
             interfaces.add(createInterface(myMicroservice, defaultName))
         }
         logger.debug("Creating interface operations for each path item...")
-        openAPI.paths.forEach[key, value|createOperations(interfaces, key, value)]
-
+        openAPI.paths.forEach[key, value|
+            try {
+                createOperations(interfaces, key, value)
+            } catch (Exception e) {
+                transMsgs.add(
+                    '''Error while creating operation «key». Operation is skipped.
+                    For details access debug log.''')
+                logger.debug(e.message)
+            }
+        ]
         logger.debug("...Services created!")
         if (OpenApiUtil.writeModel(myServiceModel, targetFolder)) {
             logger.info("Service model generation successful!")
             logger.info('''Model written to «targetFolder»''')
         } else
-            logger.info("Service model generation failed :(")
+            logger.info("Service model generation failed. See debug for more info.")
     }
 
     def ArrayList<Interface> createOperations(
