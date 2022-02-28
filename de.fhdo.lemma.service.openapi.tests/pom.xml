@@ -29,6 +29,13 @@
             <version>1.2.6</version>
         </dependency>
 
+        <!-- For testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit-version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
