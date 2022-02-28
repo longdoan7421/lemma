@@ -39,15 +39,16 @@ class GeneratorsTest {
         dataGenerator= new LemmaDataSubGenerator(openAPI, System.getProperty("user.dir")+
           "/test-model-gen/", "test.data")
         dataGenerator.generate
-        assertTrue(new File(System.getProperty("user.dir")+"/model-gen/test.data").exists)
+        assertTrue(new File(System.getProperty("user.dir")+"/test-model-gen/test.data").exists)
     }
+
     @Test
     def void technologyTest() throws Exception {
         logger.info("Starting generation of LEMMA Technology Model...")
         technologyGenerator= new LemmaTechnologySubGenerator(openAPI, System.getProperty("user.dir")+
           "/test-model-gen/", "test.technology")
         technologyGenerator.generate
-        assertTrue(new File(System.getProperty("user.dir")+"/model-gen/test.technology").exists)
+        assertTrue(new File(System.getProperty("user.dir")+"/test-model-gen/test.technology").exists)
     }
 
     @Test
@@ -65,6 +66,6 @@ class GeneratorsTest {
             System.getProperty("user.dir")+"/test-model-gen/", "test.service")
         serviceGenerator.generate("test")
 
-        assertTrue(new File(System.getProperty("user.dir")+"/model-gen/test.service").exists)
+        assertTrue(new File(System.getProperty("user.dir")+"/test-model-gen/test.service").exists)
     }
 }

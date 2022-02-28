@@ -114,7 +114,7 @@
                                 <filesets>
                                     <fileset>
                                         <directory>${basedir}/xtend-gen</directory>
-                                        <directory>${basedir}/model-gen</directory>
+                                        <directory>${basedir}/test-model-gen</directory>
                                     </fileset>
                                 </filesets>
                             </configuration>

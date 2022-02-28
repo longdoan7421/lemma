@@ -29,10 +29,11 @@
             <version>1.2.6</version>
         </dependency>
 
-
     </dependencies>
 
+
     <build>
+        <testSourceDirectory>${project.basedir}/xtend-gen</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -52,6 +53,7 @@
                     <useUIHarness>false</useUIHarness>
                     <useUIThread>false</useUIThread>
                     <failIfNoTests>false</failIfNoTests>
+                    <testClassesDirectory>${project.build.directory}/classes</testClassesDirectory>
                 </configuration>
             </plugin>
             <!-- This copies the maven specific dependencies into a dedicated folder -->

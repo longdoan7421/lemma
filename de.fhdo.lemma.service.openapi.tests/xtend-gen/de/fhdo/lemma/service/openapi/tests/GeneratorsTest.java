@@ -51,7 +51,7 @@ public class GeneratorsTest {
     this.dataGenerator = _lemmaDataSubGenerator;
     this.dataGenerator.generate();
     String _property_1 = System.getProperty("user.dir");
-    String _plus_1 = (_property_1 + "/model-gen/test.data");
+    String _plus_1 = (_property_1 + "/test-model-gen/test.data");
     Assert.assertTrue(new File(_plus_1).exists());
   }
   
@@ -65,7 +65,7 @@ public class GeneratorsTest {
     this.technologyGenerator = _lemmaTechnologySubGenerator;
     this.technologyGenerator.generate();
     String _property_1 = System.getProperty("user.dir");
-    String _plus_1 = (_property_1 + "/model-gen/test.technology");
+    String _plus_1 = (_property_1 + "/test-model-gen/test.technology");
     Assert.assertTrue(new File(_plus_1).exists());
   }
   
@@ -92,7 +92,7 @@ public class GeneratorsTest {
     this.serviceGenerator = _lemmaServiceSubGenerator;
     this.serviceGenerator.generate("test");
     String _property_3 = System.getProperty("user.dir");
-    String _plus_3 = (_property_3 + "/model-gen/test.service");
+    String _plus_3 = (_property_3 + "/test-model-gen/test.service");
     Assert.assertTrue(new File(_plus_3).exists());
   }
 }
