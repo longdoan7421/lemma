@@ -14,6 +14,14 @@ import java.io.File
 import de.fhdo.lemma.service.openapi.LemmaTechnologySubGenerator
 import de.fhdo.lemma.service.openapi.LemmaServiceSubGenerator
 
+/**
+ * This class tests the the generation of LEMMA models from
+ * an OpenAPI specification file (v3.0.3).
+ * It provides one test for each subgenerator of the openapi-bundle.
+ * @see <a href="https://www.openapis.org/">https://www.openapis.org/</a>
+ *
+ * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
+ */
 class GeneratorsTest {
     Logger logger;
     val localSchema = new File("test-schemas/openapi.json").toURI.toString

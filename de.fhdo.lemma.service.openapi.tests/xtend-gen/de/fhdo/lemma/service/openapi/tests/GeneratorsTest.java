@@ -17,6 +17,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class tests the the generation of LEMMA models from
+ * an OpenAPI specification file (v3.0.3).
+ * It provides one test for each subgenerator of the openapi-bundle.
+ * @see <a href="https://www.openapis.org/">https://www.openapis.org/</a>
+ * 
+ * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
+ */
 @SuppressWarnings("all")
 public class GeneratorsTest {
   private Logger logger;

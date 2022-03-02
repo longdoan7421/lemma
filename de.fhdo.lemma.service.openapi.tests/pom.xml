@@ -15,7 +15,8 @@
 
 
     <dependencies>
-        <!-- External Maven Dependencies copied into the lib folder -->
+
+        <!-- swagger/openapi dependencies -->
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser</artifactId>
@@ -51,18 +52,48 @@
                         <phase>clean</phase>
                     </execution>
                 </executions>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <!-- Clear generated artifacts -->
+                            <directory>${basedir}/test-model-gen</directory>
+                            <includes>
+                                <include>*.data</include>
+                                <include>*.services</include>
+                            </includes>
+                            <excludes>
+                                <exclude>*.gitignore</exclude>
+                            </excludes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+             <plugin>
+                <groupId>org.eclipse.xtend</groupId>
+                <artifactId>xtend-maven-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-surefire-plugin</artifactId>
-                <version>${tycho-version}</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <useUIHarness>false</useUIHarness>
-                    <useUIThread>false</useUIThread>
-                    <failIfNoTests>false</failIfNoTests>
+                    <!--
+                        By default, the Surefire plugin searches compiled test classes in the
+                        "target/test-classes" folder. However, since we treat test code regular
+                        source code in the DSL's "tests" sub-project (i.e., the code resides in the
+                        "src" folder rather than "src/test/java"), we adapt the search folder for
+                        test classes to "target/classes", which Maven by default uses as the target
+                        folder for compiled Java classes.
+                    -->
                     <testClassesDirectory>${project.build.directory}/classes</testClassesDirectory>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+            </plugin>
+
             <!-- This copies the maven specific dependencies into a dedicated folder -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -88,4 +119,14 @@
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+
 </project>

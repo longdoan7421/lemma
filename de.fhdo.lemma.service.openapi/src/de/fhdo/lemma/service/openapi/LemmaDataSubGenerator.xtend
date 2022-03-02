@@ -113,8 +113,10 @@ class LemmaDataSubGenerator {
             createdDataStructures.put(
                 newDataStructure.buildQualifiedName(separator), newDataStructure
             )
+            logger.debug('''Created new data structure «newDataStructure.name»''')
             return newDataStructure
         } else {
+            logger.debug('''Found and reuse existing data structure «foundObject.name»''')
             return foundObject
         }
     }
@@ -129,8 +131,10 @@ class LemmaDataSubGenerator {
             createdListStructures.put(
                 newListStructure.buildQualifiedName(separator), newListStructure
             )
+            logger.debug('''Created new list structure «newListStructure.name»''')
             return newListStructure
         } else {
+            logger.debug('''Found and reuse existing list structure «foundObject.name»''')
             return foundObject
         }
     }

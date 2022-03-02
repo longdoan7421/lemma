@@ -166,8 +166,18 @@ public class LemmaDataSubGenerator {
       this.addDataFieldsToDataStructure(newDataStructure, name, schema);
       this.createdDataStructures.put(
         newDataStructure.buildQualifiedName(this.separator), newDataStructure);
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append("Created new data structure ");
+      String _name = newDataStructure.getName();
+      _builder.append(_name);
+      LemmaDataSubGenerator.logger.debug(_builder.toString());
       return newDataStructure;
     } else {
+      StringConcatenation _builder_1 = new StringConcatenation();
+      _builder_1.append("Found and reuse existing data structure ");
+      String _name_1 = foundObject.getName();
+      _builder_1.append(_name_1);
+      LemmaDataSubGenerator.logger.debug(_builder_1.toString());
       return foundObject;
     }
   }
@@ -185,8 +195,18 @@ public class LemmaDataSubGenerator {
       this.addDataFieldsToListStructure(newListStructure, name, schema);
       this.createdListStructures.put(
         newListStructure.buildQualifiedName(this.separator), newListStructure);
+      StringConcatenation _builder_1 = new StringConcatenation();
+      _builder_1.append("Created new list structure ");
+      String _name = newListStructure.getName();
+      _builder_1.append(_name);
+      LemmaDataSubGenerator.logger.debug(_builder_1.toString());
       return newListStructure;
     } else {
+      StringConcatenation _builder_2 = new StringConcatenation();
+      _builder_2.append("Found and reuse existing list structure ");
+      String _name_1 = foundObject.getName();
+      _builder_2.append(_name_1);
+      LemmaDataSubGenerator.logger.debug(_builder_2.toString());
       return foundObject;
     }
   }
