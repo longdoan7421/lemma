@@ -20,6 +20,10 @@ import java.net.MalformedURLException
 import org.eclipse.core.resources.ResourcesPlugin
 import de.fhdo.lemma.service.openapi.LemmaGenerator
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.eclipse.swt.widgets.FileDialog
+import org.eclipse.jface.dialogs.InputDialog
+import org.eclipse.jface.window.Window
+import java.io.File
 
 /**
  * The dialog for the transformation of OpenAPI specifications to LEMMA models.
@@ -27,7 +31,7 @@ import org.eclipse.xtend.lib.annotations.Accessors
  * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
  */
 class SpecifyUrlDialog extends TitleAreaDialog {
-    static val MIN_DIALOG_WIDTH = 500
+    static val MIN_DIALOG_WIDTH = 400
     static val MIN_DIALOG_HEIGHT = 250
 
     Text txtUrl
@@ -38,6 +42,8 @@ class SpecifyUrlDialog extends TitleAreaDialog {
     Text txtServicePrefix
 
     Button btnBrowseLocation
+    Button btnUriWebLocation
+    Button btnUriFileLocation
 
     @Accessors(PUBLIC_GETTER) URL fetchUrl
 
@@ -138,12 +144,43 @@ class SpecifyUrlDialog extends TitleAreaDialog {
         val dataUrl = new GridData()
         dataUrl.grabExcessHorizontalSpace = true
         dataUrl.horizontalAlignment = GridData.FILL
-        dataUrl.horizontalSpan = 3
+        dataUrl.horizontalSpan = 1
 
         txtUrl = new Text(container, SWT.SINGLE)
         txtUrl.message = "e.g. https://petstore3.swagger.io/api/v3/openapi.json"
+        txtUrl.enabled = false
         txtUrl.setLayoutData(dataUrl)
 
+        val uriWebLocationButton = new GridData()
+        uriWebLocationButton.grabExcessHorizontalSpace = true
+        uriWebLocationButton.horizontalAlignment = SWT.RIGHT
+
+        btnUriWebLocation = new Button(container, SWT.BUTTON1)
+        btnUriWebLocation.text = "Enter URL"
+        btnUriWebLocation.setLayoutData(uriWebLocationButton)
+        btnUriWebLocation.addSelectionListener(SelectionListener.widgetSelectedAdapter([ e |
+            val urlDialog = new InputDialog(shell, "", "Enter URL",
+                "Please enter the URL", new UrlTextValidator());
+            //dirDialog.filterPath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString()
+            if (urlDialog.open() == Window.OK) {
+                txtUrl.text = urlDialog.getValue()
+            }
+        ]))
+
+        val uriFileLocationButton = new GridData()
+        uriFileLocationButton.grabExcessHorizontalSpace = true
+        uriFileLocationButton.horizontalAlignment = SWT.RIGHT
+
+        btnUriFileLocation = new Button(container, SWT.BUTTON1)
+        btnUriFileLocation.text = "Browse Filesystem"
+        btnUriFileLocation.setLayoutData(uriWebLocationButton)
+        btnUriFileLocation.addSelectionListener(SelectionListener.widgetSelectedAdapter([ e |
+            // Starting point not specified, i.e., set to default OS selection
+            val fileDialog = new FileDialog(shell);
+            fileDialog.setText("Select your OpenAPI file")
+            val selectedFile = fileDialog.open()
+            txtUrl.text = new File(selectedFile).toURI.toString
+        ]))
     }
 
     private def createTargetLocation(Composite container) {
@@ -165,7 +202,7 @@ class SpecifyUrlDialog extends TitleAreaDialog {
         dataTargetLocationButton.horizontalAlignment = SWT.RIGHT
 
         btnBrowseLocation = new Button(container, SWT.BUTTON1)
-        btnBrowseLocation.text = "Browse"
+        btnBrowseLocation.text = "Browse Filesystem"
         btnBrowseLocation.setLayoutData(dataTargetLocationButton)
         btnBrowseLocation.addSelectionListener(SelectionListener.widgetSelectedAdapter([ e |
             // Directory standard selection set default to workspace
@@ -204,6 +241,7 @@ class SpecifyUrlDialog extends TitleAreaDialog {
         txtServiceModelName.message = "MyServiceService"
         txtServiceModelName.setLayoutData(dataServiceModelName)
     }
+
     private def createServicePrefix(Composite container) {
         val lblServicePrefix = new Label(container, SWT.NONE)
         lblServicePrefix.setText("Service Model Prefix: ")
@@ -281,4 +319,6 @@ class SpecifyUrlDialog extends TitleAreaDialog {
             Math.max(convertVerticalDLUsToPixels(MIN_DIALOG_HEIGHT), shellSize.y)
         )
     }
+
+
 }

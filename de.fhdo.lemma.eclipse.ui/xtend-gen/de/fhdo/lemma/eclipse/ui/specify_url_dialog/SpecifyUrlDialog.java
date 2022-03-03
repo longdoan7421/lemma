@@ -1,6 +1,7 @@
 package de.fhdo.lemma.eclipse.ui.specify_url_dialog;
 
 import de.fhdo.lemma.service.openapi.LemmaGenerator;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -8,8 +9,10 @@ import java.util.function.Consumer;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -20,6 +23,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -36,7 +40,7 @@ import org.eclipse.xtext.xbase.lib.Pure;
  */
 @SuppressWarnings("all")
 public class SpecifyUrlDialog extends TitleAreaDialog {
-  private static final int MIN_DIALOG_WIDTH = 500;
+  private static final int MIN_DIALOG_WIDTH = 400;
   
   private static final int MIN_DIALOG_HEIGHT = 250;
   
@@ -53,6 +57,10 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
   private Text txtServicePrefix;
   
   private Button btnBrowseLocation;
+  
+  private Button btnUriWebLocation;
+  
+  private Button btnUriFileLocation;
   
   @Accessors(AccessorType.PUBLIC_GETTER)
   private URL fetchUrl;
@@ -208,11 +216,46 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
     final GridData dataUrl = new GridData();
     dataUrl.grabExcessHorizontalSpace = true;
     dataUrl.horizontalAlignment = GridData.FILL;
-    dataUrl.horizontalSpan = 3;
+    dataUrl.horizontalSpan = 1;
     Text _text = new Text(container, SWT.SINGLE);
     this.txtUrl = _text;
     this.txtUrl.setMessage("e.g. https://petstore3.swagger.io/api/v3/openapi.json");
+    this.txtUrl.setEnabled(false);
     this.txtUrl.setLayoutData(dataUrl);
+    final GridData uriWebLocationButton = new GridData();
+    uriWebLocationButton.grabExcessHorizontalSpace = true;
+    uriWebLocationButton.horizontalAlignment = SWT.RIGHT;
+    Button _button = new Button(container, SWT.BUTTON1);
+    this.btnUriWebLocation = _button;
+    this.btnUriWebLocation.setText("Enter URL");
+    this.btnUriWebLocation.setLayoutData(uriWebLocationButton);
+    final Consumer<SelectionEvent> _function = (SelectionEvent e) -> {
+      Shell _shell = this.getShell();
+      UrlTextValidator _urlTextValidator = new UrlTextValidator();
+      final InputDialog urlDialog = new InputDialog(_shell, "", "Enter URL", 
+        "Please enter the URL", _urlTextValidator);
+      int _open = urlDialog.open();
+      boolean _equals = (_open == Window.OK);
+      if (_equals) {
+        this.txtUrl.setText(urlDialog.getValue());
+      }
+    };
+    this.btnUriWebLocation.addSelectionListener(SelectionListener.widgetSelectedAdapter(_function));
+    final GridData uriFileLocationButton = new GridData();
+    uriFileLocationButton.grabExcessHorizontalSpace = true;
+    uriFileLocationButton.horizontalAlignment = SWT.RIGHT;
+    Button _button_1 = new Button(container, SWT.BUTTON1);
+    this.btnUriFileLocation = _button_1;
+    this.btnUriFileLocation.setText("Browse Filesystem");
+    this.btnUriFileLocation.setLayoutData(uriWebLocationButton);
+    final Consumer<SelectionEvent> _function_1 = (SelectionEvent e) -> {
+      Shell _shell = this.getShell();
+      final FileDialog fileDialog = new FileDialog(_shell);
+      fileDialog.setText("Select your OpenAPI file");
+      final String selectedFile = fileDialog.open();
+      this.txtUrl.setText(new File(selectedFile).toURI().toString());
+    };
+    this.btnUriFileLocation.addSelectionListener(SelectionListener.widgetSelectedAdapter(_function_1));
   }
   
   private void createTargetLocation(final Composite container) {
@@ -232,7 +275,7 @@ public class SpecifyUrlDialog extends TitleAreaDialog {
     dataTargetLocationButton.horizontalAlignment = SWT.RIGHT;
     Button _button = new Button(container, SWT.BUTTON1);
     this.btnBrowseLocation = _button;
-    this.btnBrowseLocation.setText("Browse");
+    this.btnBrowseLocation.setText("Browse Filesystem");
     this.btnBrowseLocation.setLayoutData(dataTargetLocationButton);
     final Consumer<SelectionEvent> _function = (SelectionEvent e) -> {
       Shell _shell = this.getShell();
