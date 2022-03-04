@@ -11,6 +11,7 @@
     <modules>
         <module>../de.fhdo.lemma.service.openapi</module>
         <module>../de.fhdo.lemma.service.openapi.tests</module>
+        <module>../de.fhdo.lemma.service.openapi.eclipse.ui</module>
     </modules>
 
     <profiles>
@@ -193,24 +194,23 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-maven-plugin</artifactId>
-                <version>${tycho-version}</version>
-                <extensions>true</extensions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-versions-plugin</artifactId>
-                <version>${tycho-version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>versions-maven-plugin</artifactId>
-                <version>${versions-maven-plugin-version}</version>
-            </plugin>
+	        <plugin>
+	            <groupId>org.eclipse.tycho</groupId>
+	            <artifactId>tycho-maven-plugin</artifactId>
+	            <version>${tycho-version}</version>
+	            <extensions>true</extensions>
+	        </plugin>
+	        <plugin>
+	            <groupId>org.eclipse.tycho</groupId>
+	            <artifactId>tycho-versions-plugin</artifactId>
+	            <version>${tycho-version}</version>
+	        </plugin>
+	        <plugin>
+	            <groupId>org.codehaus.mojo</groupId>
+	            <artifactId>versions-maven-plugin</artifactId>
+	            <version>${versions-maven-plugin-version}</version>
+	        </plugin>
         </plugins>
     </build>
 </project>
