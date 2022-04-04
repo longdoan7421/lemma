@@ -1,17 +1,21 @@
 package de.fhdo.lemma.service.openapi;
 
 import de.fhdo.lemma.data.DataModel;
+import de.fhdo.lemma.service.openapi.exceptions.ParsingException;
 import de.fhdo.lemma.technology.Technology;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.xtend.lib.annotations.AccessorType;
 import org.eclipse.xtend.lib.annotations.Accessors;
+import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
+import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Pair;
 import org.eclipse.xtext.xbase.lib.Pure;
 import org.slf4j.Logger;
@@ -22,8 +26,8 @@ import org.slf4j.LoggerFactory;
  * an OpenAPI specification file (v3.0.3). It supports the generation from JSON as well as YAML
  * OpenAPI files, e.g.,
  * <a href="https://petstore3.swagger.io/api/v3/openapi.json">Swagger's PET Store example</a>
- * @see <a href="https://www.openapis.org/">https://www.openapis.org/</a>
- * 
+ * @see <a href="https://github.com/SeelabFhdo/lemma">LEMMA on GitHub</a>
+ * @see <a href="https://www.openapis.org/">OpenAPI Specification</a>
  * @author <a href="mailto:jonas.sorgalla@fh-dortmund.de">Jonas Sorgalla</a>
  */
 @SuppressWarnings("all")
@@ -117,6 +121,106 @@ public class LemmaGenerator {
       _xblockexpression = this.transMsgs.addAll(serviceGenerator.getTransMsgs());
     }
     return _xblockexpression;
+  }
+  
+  /**
+   * Entrypoint for execution outside of eclipse.
+   * Takes these parameters in the following order to call the OpenAPI2LEMMA Generator.
+   * All parameters are mandatory.
+   * <ul>
+   * <li><i>openapiPath</i>
+   * - URL pointing to the OpenAPI specification (file:/ or https://).</li>
+   * <li><i>genPath</i>
+   * - Path to the folder where the generated LEMMA models will be saved
+   * (e.g. C:/myfolder/test ).</li>
+   * <li><i>dataFilename</i> - Name for the generated LEMMA Domain Data Model.</li>
+   * <li><i>serviceFilename</i> - Name for the generated LEMMA Service Model.</li>
+   * <li><i>techFilename</i> - Name for the generated LEMMA Technology Model.</li>
+   * <li><i>prefixService</i> - Prefix for the package of
+   * the service model, (e.g. my.example.package)</li>
+   * </ul>
+   */
+  public static void main(final String[] args) {
+    try {
+      final LemmaGenerator generator = new LemmaGenerator();
+      generator.logger.info("Starting direct invocation of OpenAPI2LEMMA Generator.");
+      generator.logger.info("Checking parameters...");
+      int _length = args.length;
+      boolean _notEquals = (_length != 6);
+      if (_notEquals) {
+        throw new IllegalArgumentException("Number of parameters insufficient.");
+      }
+      String _get = args[0];
+      final URL fetchUrl = new URL(_get);
+      final String targetLoc = args[1];
+      final String dataName = args[2];
+      final String servName = args[3];
+      final String techName = args[4];
+      final String servPre = args[5];
+      if (((((targetLoc.trim().isEmpty() || dataName.trim().isEmpty()) || 
+        servName.trim().isEmpty()) || techName.trim().isEmpty()) || 
+        servPre.trim().isEmpty())) {
+        throw new IllegalArgumentException("Empty parameters encountered.");
+      }
+      generator.logger.info("Parameter check successful.");
+      generator.logger.info("Parsing the OpenAPI file...");
+      final List<String> parsingMessages = generator.parse(fetchUrl.toString());
+      boolean _isParsed = generator.isParsed();
+      boolean _not = (!_isParsed);
+      if (_not) {
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("It was not possible to generate an in-memory ");
+        StringConcatenation _builder_1 = new StringConcatenation();
+        _builder_1.append("representation of the file located at ");
+        String _string = fetchUrl.toString();
+        _builder_1.append(_string);
+        _builder_1.append(" .");
+        String _plus = (_builder.toString() + _builder_1);
+        throw new ParsingException(_plus);
+      }
+      StringConcatenation _builder_2 = new StringConcatenation();
+      _builder_2.append("Encountered messages during parsing (empty if none):");
+      _builder_2.newLine();
+      {
+        for(final String msg : parsingMessages) {
+          _builder_2.append(msg);
+          _builder_2.newLineIfNotEmpty();
+          _builder_2.append("\t\t\t");
+        }
+      }
+      _builder_2.append(" END");
+      generator.logger.info(_builder_2.toString());
+      generator.logger.info("In-memory representation of OpenAPI model loaded.");
+      generator.logger.info("Starting LEMMA model generation procedure...");
+      StringConcatenation _builder_3 = new StringConcatenation();
+      _builder_3.append(targetLoc);
+      _builder_3.append("/");
+      StringConcatenation _builder_4 = new StringConcatenation();
+      _builder_4.append(dataName);
+      _builder_4.append(".data");
+      StringConcatenation _builder_5 = new StringConcatenation();
+      _builder_5.append(servName);
+      _builder_5.append(".services");
+      StringConcatenation _builder_6 = new StringConcatenation();
+      _builder_6.append(techName);
+      _builder_6.append(".technology");
+      generator.generateModels(_builder_3.toString(), _builder_4.toString(), _builder_5.toString(), _builder_6.toString(), servPre);
+      generator.logger.info("The transformation was a success!");
+      StringConcatenation _builder_7 = new StringConcatenation();
+      _builder_7.append("Encountered problems during transformation (empty if none):");
+      _builder_7.newLine();
+      {
+        for(final String msg_1 : generator.transMsgs) {
+          _builder_7.append(msg_1);
+          _builder_7.newLineIfNotEmpty();
+          _builder_7.append("\t\t\t");
+        }
+      }
+      _builder_7.append(" END");
+      generator.logger.info(_builder_7.toString());
+    } catch (Throwable _e) {
+      throw Exceptions.sneakyThrow(_e);
+    }
   }
   
   @Pure
