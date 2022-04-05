@@ -150,6 +150,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <!-- this builds a fat jar for standalone execution -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -162,6 +163,16 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <finalName>
                                 ${project.artifactId}-standalone-${project.version}</finalName>
                             <transformers>
