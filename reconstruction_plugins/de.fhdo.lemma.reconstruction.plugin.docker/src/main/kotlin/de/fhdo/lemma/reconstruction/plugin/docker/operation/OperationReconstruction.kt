@@ -26,9 +26,9 @@ class OperationReconstruction: AbstractReconstructionModule() {
     override fun execute(abstractParseTree: AbstractParseTree) :
         List<AbstractReconstructionElement> {
         val reconstructedElements = mutableListOf<AbstractReconstructionElement>()
-        val dockerParseFile = abstractParseTree as DockerParseFile
+        val dockerComposeParseTree = abstractParseTree as DockerComposeParseTree
         //todo: Change the example logic to a proper version for the extraction information
-        dockerParseFile.parseFile.entries.forEach { entry ->
+        dockerComposeParseTree.parseFile.entries.forEach { entry ->
             if (entry.key == "services") {
                 val entries = entry.value as LinkedHashMap<*, *>
                 entries.keys.forEach{key ->
@@ -48,8 +48,8 @@ class OperationReconstruction: AbstractReconstructionModule() {
         val inputStream = FileInputStream(File(path))
         val yaml = Yaml()
         val data = yaml.load(inputStream) as LinkedHashMap<String, Any>
-        val dockerParseFile = DockerParseFile(path, data)
-        return Pair(ParsingResultType.FULLY_PARSED, dockerParseFile)
+        val dockerComposeParseTree = DockerComposeParseTree(path, data)
+        return Pair(ParsingResultType.FULLY_PARSED, dockerComposeParseTree)
     }
 
     /**

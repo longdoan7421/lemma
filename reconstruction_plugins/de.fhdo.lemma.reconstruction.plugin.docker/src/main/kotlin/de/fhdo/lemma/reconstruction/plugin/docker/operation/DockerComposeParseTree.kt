@@ -7,7 +7,7 @@ import de.fhdo.lemma.reconstruction.framework.plugins.AbstractParseTree
  *
  * @author [Philip Wizenty](mailto:philip.wizenty@fh-dortmund.de)
  */
-data class DockerParseFile (
+data class DockerComposeParseTree (
     val path: String,
     //todo: change to a proper representation of a Docker-Compose file. c.f. container_base
     val parseFile: LinkedHashMap<String, Any>

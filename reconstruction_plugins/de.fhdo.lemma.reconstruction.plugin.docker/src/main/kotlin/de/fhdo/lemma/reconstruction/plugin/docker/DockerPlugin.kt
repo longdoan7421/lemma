@@ -20,8 +20,7 @@ class DockerPlugin() : AbstractPlugin("de.fhdo.lemma.reconstruction.plugin.docke
 fun main(args : Array<String>) {
     println("SoftwareArchitectureReconstruction Docker Plugin!")
     val reconstruction = OperationReconstruction()
-    val parseTreeResult = reconstruction.getParseTree("/Users/phil/Entwicklung/msa-example/" +
-            "LakesideMutual/docker-compose.yml")
+    val parseTreeResult = reconstruction.getParseTree("/Users/longdoan/Workspace/FHDO/docker-compose.yml")
     val reconstructionResults = reconstruction.execute(parseTreeResult.second)
     println(reconstructionResults)
 }
