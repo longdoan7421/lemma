@@ -7,8 +7,31 @@ import de.fhdo.lemma.reconstruction.framework.plugins.AbstractParseTree
  *
  * @author [Philip Wizenty](mailto:philip.wizenty@fh-dortmund.de)
  */
-data class DockerComposeParseTree (
+data class DockerComposeParseTree(
     val path: String,
-    //todo: change to a proper representation of a Docker-Compose file. c.f. container_base
-    val parseFile: LinkedHashMap<String, Any>
-    ) : AbstractParseTree("DockerComposeFile")
+    val data: DockerComposeSpec
+) : AbstractParseTree("DockerComposeFile")
+
+/**
+ * Data class which represents the Docker-Compose file structure
+ *
+ * NOTE: Only the most important fields are represented here.
+ * Full spec: https://github.com/compose-spec/compose-spec/blob/master/spec.md
+ */
+data class DockerComposeSpec(
+    val version: String = "",
+    val services: LinkedHashMap<String, ServiceSpec> = LinkedHashMap(),
+    val networks: List<Any>? = emptyList(),
+    val volumes: List<Any>? = emptyList(),
+)
+
+data class ServiceSpec(
+    var __name: String = "",
+    val container_name: String = "",
+    val image: String = "",
+    val ports: List<String>, // TODO: use union type (or something else) to support long syntax too
+    val depends_on: List<String>? = null, // TODO: use union type (or something else) to support long syntax too
+    val environment: Map<String, String>? = null,
+    val volumes: List<String>? = null,
+    val restart: String? = null,
+)

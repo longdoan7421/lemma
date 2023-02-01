@@ -58,6 +58,9 @@ dependencies {
     implementation("org.fusesource.jansi:jansi:$jansiVersion")
     implementation("org.redundent:kotlin-xml-builder:$xmlBuilderVersion")
 
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+
     implementation("de.fhdo.lemma.model_processing:de.fhdo.lemma.model_processing:$modelProcessingVersion")
     implementation("de.fhdo.lemma.model_processing.code_generation.java_base:de.fhdo.lemma.model_processing.code_generation.java_base:$lemmaEclipsePluginsVersion")
     implementation("de.fhdo.lemma.model_processing.code_generation.container_base:de.fhdo.lemma.model_processing.code_generation.container_base:$modelProcessingVersion")

@@ -1,5 +1,7 @@
 package de.fhdo.lemma.reconstruction.plugin.docker.operation
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import de.fhdo.lemma.reconstruction.framework.modules.AbstractReconstructionElement
 import de.fhdo.lemma.reconstruction.framework.modules.AbstractReconstructionModule
 import de.fhdo.lemma.reconstruction.framework.modules.ReconstructionModule
@@ -7,9 +9,7 @@ import de.fhdo.lemma.reconstruction.framework.modules.ReconstructionStage
 import de.fhdo.lemma.reconstruction.framework.plugins.AbstractParseTree
 import de.fhdo.lemma.reconstruction.framework.plugins.ParsingResultType
 import de.fhdo.lemma.reconstruction.plugin.docker.operation.container.Container
-import org.yaml.snakeyaml.Yaml
 import java.io.File
-import java.io.FileInputStream
 
 /**
  * A reconstruction module for the docker reconstruction plugin. It is used to extract information
@@ -18,24 +18,19 @@ import java.io.FileInputStream
  * @author [Philip Wizenty](mailto:philip.wizenty@fh-dortmund.de)
  */
 @ReconstructionModule(ReconstructionStage.Operation)
-class OperationReconstruction: AbstractReconstructionModule() {
+class OperationReconstruction : AbstractReconstructionModule() {
     /**
      * Main method of the reconstruction module. The method extracts information from a parse tree
      * and saves it to a reconstruction element, such as a [Container].
      */
-    override fun execute(abstractParseTree: AbstractParseTree) :
-        List<AbstractReconstructionElement> {
+    override fun execute(abstractParseTree: AbstractParseTree):
+            List<AbstractReconstructionElement> {
         val reconstructedElements = mutableListOf<AbstractReconstructionElement>()
         val dockerComposeParseTree = abstractParseTree as DockerComposeParseTree
         //todo: Change the example logic to a proper version for the extraction information
-        dockerComposeParseTree.parseFile.entries.forEach { entry ->
-            if (entry.key == "services") {
-                val entries = entry.value as LinkedHashMap<*, *>
-                entries.keys.forEach{key ->
-                    val container = Container(key.toString())
-                    reconstructedElements.add(container)
-                }
-            }
+        dockerComposeParseTree.data.services.entries.forEach { entry ->
+            val container = Container(entry.key)
+            reconstructedElements.add(container)
         }
         return reconstructedElements
     }
@@ -44,18 +39,19 @@ class OperationReconstruction: AbstractReconstructionModule() {
      * Create a parse tree based on a file path. This method provides the parse tree used by the
      * execute method.
      */
-    override fun getParseTree(path: String) : Pair<ParsingResultType, AbstractParseTree> {
-        val inputStream = FileInputStream(File(path))
-        val yaml = Yaml()
-        val data = yaml.load(inputStream) as LinkedHashMap<String, Any>
-        val dockerComposeParseTree = DockerComposeParseTree(path, data)
+    override fun getParseTree(path: String): Pair<ParsingResultType, AbstractParseTree> {
+        val mapper = YAMLMapper().registerKotlinModule()
+        val parsedTree = mapper.readValue(File(path), DockerComposeSpec::class.java)
+        parsedTree.services.map { it.value.__name = it.key } // set name of service just for future reference
+        val dockerComposeParseTree = DockerComposeParseTree(path, parsedTree)
+
         return Pair(ParsingResultType.FULLY_PARSED, dockerComposeParseTree)
     }
 
     /**
      * Return file extension for supported file types.
      */
-    override fun getSupportFileExtensions() : List<String> {
+    override fun getSupportFileExtensions(): List<String> {
         return listOf("yaml", "yml")
     }
 }
