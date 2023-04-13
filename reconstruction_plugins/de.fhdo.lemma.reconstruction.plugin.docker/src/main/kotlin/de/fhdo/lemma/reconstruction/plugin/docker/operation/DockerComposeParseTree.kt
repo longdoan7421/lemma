@@ -20,18 +20,20 @@ data class DockerComposeParseTree(
  */
 data class DockerComposeSpec(
     val version: String = "",
-    val services: LinkedHashMap<String, ServiceSpec> = LinkedHashMap(),
+    val services: LinkedHashMap<String, DockerComposeServiceSpec> = LinkedHashMap(),
     val networks: List<Any>? = emptyList(),
     val volumes: List<Any>? = emptyList(),
 )
 
-data class ServiceSpec(
+data class DockerComposeServiceSpec(
     var __name: String = "",
     val container_name: String = "",
+    val build: String = "", // TODO: support complex syntax
     val image: String = "",
     val ports: List<String>, // TODO: use union type (or something else) to support long syntax too
     val depends_on: List<String>? = null, // TODO: use union type (or something else) to support long syntax too
     val environment: Map<String, String>? = null,
     val volumes: List<String>? = null,
     val restart: String? = null,
+    val networks: List<String>? = null,
 )

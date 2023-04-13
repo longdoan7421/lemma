@@ -9,6 +9,7 @@ import de.fhdo.lemma.reconstruction.framework.modules.ReconstructionStage
 import de.fhdo.lemma.reconstruction.framework.plugins.AbstractParseTree
 import de.fhdo.lemma.reconstruction.framework.plugins.ParsingResultType
 import de.fhdo.lemma.reconstruction.plugin.docker.operation.container.Container
+import de.fhdo.lemma.reconstruction.plugin.docker.operation.infrastructure.node.InfrastructureNode
 import java.io.File
 
 /**
@@ -25,14 +26,24 @@ class OperationReconstruction : AbstractReconstructionModule() {
      */
     override fun execute(abstractParseTree: AbstractParseTree):
             List<AbstractReconstructionElement> {
-        val reconstructedElements = mutableListOf<AbstractReconstructionElement>()
         val dockerComposeParseTree = abstractParseTree as DockerComposeParseTree
-        //todo: Change the example logic to a proper version for the extraction information
-        dockerComposeParseTree.data.services.entries.forEach { entry ->
-            val container = Container(entry.key)
-            reconstructedElements.add(container)
+        val operationNodes: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
+
+        dockerComposeParseTree.data.services.forEach { (serviceName, serviceSpec) ->
+            val operationNode: OperationNode = if (determineServiceType(serviceSpec) == OperationNodeType.Container) {
+                Container(name = serviceName)
+            } else {
+                InfrastructureNode(name = serviceName)
+            }
+            operationNodes[serviceSpec] = operationNode
         }
-        return reconstructedElements
+
+        // Finding dependencies for each operation node
+        operationNodes.forEach { node ->
+            determineDependencies(node, operationNodes)
+        }
+
+        return operationNodes.values.toList()
     }
 
     /**
@@ -53,5 +64,21 @@ class OperationReconstruction : AbstractReconstructionModule() {
      */
     override fun getSupportFileExtensions(): List<String> {
         return listOf("yaml", "yml")
+    }
+
+    private fun determineServiceType(spec: DockerComposeServiceSpec): OperationNodeType {
+        // TODO: differentiate Container and InfrastructureNode
+        return OperationNodeType.Container
+    }
+
+    private fun determineDependencies(
+        node: Map.Entry<DockerComposeServiceSpec, OperationNode>,
+        allNodes: HashMap<DockerComposeServiceSpec, OperationNode>
+    ): OperationNode {
+        val dependencyNodeNames = node.key.depends_on ?: return node.value
+        val dependencyNodes =
+            allNodes.filter { dependencyNodeNames.indexOf(it.value.name) > -1 }.values.toMutableList()
+        node.value.dependencyNodes = dependencyNodes
+        return node.value
     }
 }
