@@ -30,10 +30,11 @@ class OperationReconstruction : AbstractReconstructionModule() {
         val operationNodes: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
 
         dockerComposeParseTree.data.services.forEach { (serviceName, serviceSpec) ->
+            val endpoints = determineEndpoints(serviceSpec)
             val operationNode: OperationNode = if (determineServiceType(serviceSpec) == OperationNodeType.Container) {
-                Container(name = serviceName)
+                Container(name = serviceName, endpoints = endpoints)
             } else {
-                InfrastructureNode(name = serviceName)
+                InfrastructureNode(name = serviceName, endpoints = endpoints)
             }
             operationNodes[serviceSpec] = operationNode
         }
@@ -68,7 +69,14 @@ class OperationReconstruction : AbstractReconstructionModule() {
 
     private fun determineServiceType(spec: DockerComposeServiceSpec): OperationNodeType {
         // TODO: differentiate Container and InfrastructureNode
+        // Option 1: based on name of docker image
+        // Option 2: based on Config (`CMD` or `ENTRYPOINT`) when inspect docker image
+        // See: https://docs.docker.com/engine/reference/commandline/inspect/
         return OperationNodeType.Container
+    }
+
+    private fun determineEndpoints(spec: DockerComposeServiceSpec): List<String> {
+        return spec.ports.map { port -> port.split(":")[1] }
     }
 
     private fun determineDependencies(

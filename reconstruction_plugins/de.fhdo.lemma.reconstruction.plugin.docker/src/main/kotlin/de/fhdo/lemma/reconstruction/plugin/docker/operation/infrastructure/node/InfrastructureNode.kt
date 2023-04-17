@@ -10,12 +10,14 @@ import de.fhdo.lemma.reconstruction.plugin.docker.operation.OperationNode
  */
 class InfrastructureNode(
     name: String,
+    val endpoints: List<String>? = null,
 ) : OperationNode(name) {
     override fun toString(): String {
         return """
             |InfrastructureNode(
             |   name='$name'
-            |   dependsOn='${dependencyNodes.map { it.toString() }}'
+            |   dependsOn='${dependencyNodes.map { it::class.qualifiedName + ":" + it.name }}'
+            |   endpoints='$endpoints'
             |)""".trimMargin()
     }
 }
