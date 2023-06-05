@@ -68,9 +68,46 @@ class OperationReconstruction : AbstractReconstructionModule() {
     }
 
     private fun determineServiceType(spec: DockerComposeServiceSpec): OperationNodeType {
-        // TODO: differentiate Container and InfrastructureNode
-        // Option 1: based on name of docker image
-        // Option 2: based on Config (`CMD` or `ENTRYPOINT`) when inspect docker image
+        // Option 1: based on name of service
+        val commonInfrastructureNames = listOf(
+            "db",
+            "database",
+            "registry",
+            "discovery",
+            "configuration",
+            "gateway",
+            "broker",
+            "identity"
+        ) + listOf(
+            "mongo",
+            "mongodb",
+            "mysql",
+            "postgres",
+            "postgresql",
+            "sqlserver",
+            "mariadb",
+            "redis",
+            "rabbitmq",
+            "kafka",
+            "zookeeper",
+            "eureka",
+            "keycloak",
+        );
+
+        val doesServiceNameContainCommonInfrastructureName =
+            commonInfrastructureNames.any { spec.__name.contains(it, true) }
+        if (doesServiceNameContainCommonInfrastructureName) {
+            return OperationNodeType.InfrastructureNode
+        }
+
+        // Option 2: based on image name
+        val doesImageNameContainCommonInfrastructureName =
+            commonInfrastructureNames.any { spec.image.contains(it, true) }
+        if (doesImageNameContainCommonInfrastructureName) {
+            return OperationNodeType.InfrastructureNode
+        }
+
+        // Option 3: based on Config (`CMD` or `ENTRYPOINT`) when inspect docker image
         // See: https://docs.docker.com/engine/reference/commandline/inspect/
         return OperationNodeType.Container
     }
