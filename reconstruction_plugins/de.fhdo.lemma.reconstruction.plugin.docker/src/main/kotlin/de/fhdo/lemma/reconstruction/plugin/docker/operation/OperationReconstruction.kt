@@ -31,7 +31,7 @@ class OperationReconstruction : AbstractReconstructionModule() {
     override fun execute(abstractParseTree: AbstractParseTree):
             List<AbstractReconstructionElement> {
         val dockerComposeParseTree = abstractParseTree as DockerComposeParseTree
-        val operationNodes: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
+        val operationNodeHashMap: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
 
         dockerComposeParseTree.data.services.forEach { (serviceName, serviceSpec) ->
             val endpoints = determineEndpoints(serviceSpec)
@@ -40,15 +40,20 @@ class OperationReconstruction : AbstractReconstructionModule() {
             } else {
                 InfrastructureNode(name = serviceName, endpoints = endpoints)
             }
-            operationNodes[serviceSpec] = operationNode
+            operationNodeHashMap[serviceSpec] = operationNode
         }
 
         // Finding dependencies for each operation node
-        operationNodes.forEach { node ->
-            determineDependencies(node, operationNodes)
+        operationNodeHashMap.forEach { hashMapEntry ->
+            determineDependencyNodes(hashMapEntry, operationNodeHashMap)
         }
 
-        return operationNodes.values.toList()
+        // Note:
+        operationNodeHashMap.forEach{ hashMapEntry ->
+            determineUsedByNodes(hashMapEntry, operationNodeHashMap)
+        }
+
+        return operationNodeHashMap.values.toList()
     }
 
     /**
@@ -159,14 +164,26 @@ class OperationReconstruction : AbstractReconstructionModule() {
         return spec.ports.map { port -> port.split(":")[1] }
     }
 
-    private fun determineDependencies(
+    private fun determineDependencyNodes(
         node: Map.Entry<DockerComposeServiceSpec, OperationNode>,
         allNodes: HashMap<DockerComposeServiceSpec, OperationNode>
-    ): OperationNode {
-        val dependencyNodeNames = node.key.depends_on ?: return node.value
+    ) {
+        val dependencyNodeNames = node.key.depends_on ?: return
         val dependencyNodes =
             allNodes.filter { dependencyNodeNames.indexOf(it.value.name) > -1 }.values.toMutableList()
-        node.value.dependencyNodes = dependencyNodes
-        return node.value
+        node.value.dependencyNodes.addAll(dependencyNodes)
+    }
+
+    private fun determineUsedByNodes(
+        node: Map.Entry<DockerComposeServiceSpec, OperationNode>,
+        allNodes: HashMap<DockerComposeServiceSpec, OperationNode>
+    ) {
+        val usedByNodes = mutableListOf<OperationNode>()
+        allNodes.forEach { (key, value) ->
+            if (value.dependencyNodes.contains(node.value)) {
+                usedByNodes.add(value)
+            }
+        }
+        node.value.usedByNodes.addAll(usedByNodes)
     }
 }

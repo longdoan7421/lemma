@@ -4,7 +4,9 @@ import de.fhdo.lemma.reconstruction.framework.modules.AbstractReconstructionElem
 
 abstract class OperationNode(
     val name: String,
-    var dependencyNodes: MutableList<OperationNode> = mutableListOf(),
+    val dependencyNodes: MutableList<OperationNode> = mutableListOf(),
+    val usedByNodes: MutableList<OperationNode> = mutableListOf(),
+    val
 ) : AbstractReconstructionElement() {
     constructor(name: String) : this(name, mutableListOf())
 }

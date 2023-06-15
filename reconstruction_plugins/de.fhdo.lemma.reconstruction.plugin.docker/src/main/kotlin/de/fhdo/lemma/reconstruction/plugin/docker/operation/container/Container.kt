@@ -19,8 +19,9 @@ class Container(
         return """
             |Container(
             |   name='$name'
-            |   dependsOn='${dependencyNodes.map { it::class.qualifiedName + ":" + it.name }}'
             |   endpoints='$endpoints'
+            |   dependsOn='${dependencyNodes.map { it::class.qualifiedName + ":" + it.name }}'
+            |   usedBy='${usedByNodes.map { it::class.qualifiedName + ":" + it.name }}'
             |)""".trimMargin()
     }
 }
