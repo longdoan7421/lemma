@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.7.10"
+    kotlin("plugin.serialization") version "1.7.10"
 }
 
 group = "de.fhdo.lemma.reconstruction.plugin.docker"
@@ -58,8 +59,12 @@ dependencies {
     implementation("org.fusesource.jansi:jansi:$jansiVersion")
     implementation("org.redundent:kotlin-xml-builder:$xmlBuilderVersion")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+
+    implementation("com.sealwu:kscript-tools:1.0.22")
 
     implementation("de.fhdo.lemma.model_processing:de.fhdo.lemma.model_processing:$modelProcessingVersion")
     implementation("de.fhdo.lemma.model_processing.code_generation.java_base:de.fhdo.lemma.model_processing.code_generation.java_base:$lemmaEclipsePluginsVersion")
