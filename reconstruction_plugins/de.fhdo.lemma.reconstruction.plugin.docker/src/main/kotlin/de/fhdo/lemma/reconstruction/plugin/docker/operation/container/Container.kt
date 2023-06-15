@@ -10,11 +10,12 @@ import de.fhdo.lemma.reconstruction.plugin.docker.operation.OperationNode
  */
 class Container(
     name: String,
+    endpoints: List<String>,
+    environment: Map<String, String>? = null,
 //    private val technology: String, // TODO: how to detect?
 //    private val deploymentTechnology: String, // TODO: how to detect? Maybe hard code to Docker Compose?
 //    private val deployedServices: MutableList<String>, // TODO: how to detect?
-    val endpoints: List<String>? = null,
-) : OperationNode(name) {
+) : OperationNode(name, endpoints = endpoints, environment = environment) {
     override fun toString(): String {
         return """
             |Container(
@@ -22,6 +23,7 @@ class Container(
             |   endpoints='$endpoints'
             |   dependsOn='${dependencyNodes.map { it::class.qualifiedName + ":" + it.name }}'
             |   usedBy='${usedByNodes.map { it::class.qualifiedName + ":" + it.name }}'
+            |   environment='$environment'
             |)""".trimMargin()
     }
 }
