@@ -37,7 +37,7 @@ class OperationReconstruction : AbstractReconstructionModule() {
             val endpoints = determineEndpoints(serviceSpec)
             val environment = serviceSpec.environment
             val operationNode: OperationNode = if (determineServiceType(serviceSpec) == OperationNodeType.Container) {
-                Container(name = serviceName, endpoints = endpoints, environment = environment)
+                Container(name = serviceName, endpoints = endpoints, environment = environment, deployedServices = mutableListOf(serviceName))
             } else {
                 InfrastructureNode(name = serviceName, endpoints = endpoints, environment = environment)
             }
