@@ -61,8 +61,9 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.14.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.3")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.3")
 
     implementation("com.sealwu:kscript-tools:1.0.22")
 
