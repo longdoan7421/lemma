@@ -23,4 +23,8 @@ data class DockerComposeServicePortSpec(
     val protocol: String? = null,
     val mode: String? = null,
     val name: String? = null
-)
+) {
+    override fun toString(): String {
+        return "${published}:${target}"
+    }
+}

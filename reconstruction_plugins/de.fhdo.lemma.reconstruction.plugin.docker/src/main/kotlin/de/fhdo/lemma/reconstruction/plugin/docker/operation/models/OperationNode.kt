@@ -1,4 +1,4 @@
-package de.fhdo.lemma.reconstruction.plugin.docker.operation
+package de.fhdo.lemma.reconstruction.plugin.docker.operation.models
 
 import de.fhdo.lemma.reconstruction.framework.modules.AbstractReconstructionElement
 

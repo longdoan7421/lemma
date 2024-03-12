@@ -9,8 +9,13 @@ import de.fhdo.lemma.reconstruction.framework.modules.ReconstructionStage
 import de.fhdo.lemma.reconstruction.framework.plugins.AbstractParseTree
 import de.fhdo.lemma.reconstruction.framework.plugins.ParsingResultType
 import de.fhdo.lemma.reconstruction.plugin.docker.extensions.*
-import de.fhdo.lemma.reconstruction.plugin.docker.operation.container.Container
-import de.fhdo.lemma.reconstruction.plugin.docker.operation.infrastructure.node.InfrastructureNode
+import de.fhdo.lemma.reconstruction.plugin.docker.operation.models.Container
+import de.fhdo.lemma.reconstruction.plugin.docker.operation.models.InfrastructureNode
+import de.fhdo.lemma.reconstruction.plugin.docker.operation.models.OperationNode
+import de.fhdo.lemma.reconstruction.plugin.docker.operation.models.OperationNodeType
+import de.fhdo.lemma.reconstruction.plugin.docker.parser.DockerComposeParseTree
+import de.fhdo.lemma.reconstruction.plugin.docker.parser.DockerComposeServiceSpec
+import de.fhdo.lemma.reconstruction.plugin.docker.parser.DockerComposeSpec
 import evalBash
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -28,33 +33,37 @@ class OperationReconstruction : AbstractReconstructionModule() {
      * Main method of the reconstruction module. The method extracts information from a parse tree
      * and saves it to a reconstruction element, such as a [Container].
      */
-    override fun execute(abstractParseTree: AbstractParseTree):
-            List<AbstractReconstructionElement> {
+    override fun execute(abstractParseTree: AbstractParseTree): List<AbstractReconstructionElement> {
         val dockerComposeParseTree = abstractParseTree as DockerComposeParseTree
-        val operationNodeHashMap: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
+        val composeServiceSpecOperationNodeHashMap: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
 
         dockerComposeParseTree.data.services.forEach { (serviceName, serviceSpec) ->
             val endpoints = determineEndpoints(serviceSpec)
             val environment = serviceSpec.environment
-            val operationNode: OperationNode = if (determineServiceType(serviceSpec) == OperationNodeType.Container) {
-                Container(name = serviceName, endpoints = endpoints, environment = environment, deployedServices = mutableListOf(serviceName))
+            val operationNode: OperationNode = if (determineNodeType(serviceSpec, serviceName) == OperationNodeType.Container) {
+                Container(
+                    name = serviceName,
+                    endpoints = endpoints,
+                    environment = environment,
+                    deployedServices = mutableListOf(serviceName)
+                )
             } else {
                 InfrastructureNode(name = serviceName, endpoints = endpoints, environment = environment)
             }
-            operationNodeHashMap[serviceSpec] = operationNode
+            composeServiceSpecOperationNodeHashMap[serviceSpec] = operationNode
         }
 
         // Finding dependencies for each operation node
-        operationNodeHashMap.forEach { hashMapEntry ->
-            determineDependencyNodes(hashMapEntry, operationNodeHashMap)
+        composeServiceSpecOperationNodeHashMap.forEach { hashMapEntry ->
+            determineDependencyNodes(hashMapEntry, composeServiceSpecOperationNodeHashMap)
         }
 
         // Note:
-        operationNodeHashMap.forEach{ hashMapEntry ->
-            determineUsedByNodes(hashMapEntry, operationNodeHashMap)
+        composeServiceSpecOperationNodeHashMap.forEach { hashMapEntry ->
+            determineUsedByNodes(hashMapEntry, composeServiceSpecOperationNodeHashMap)
         }
 
-        return operationNodeHashMap.values.toList()
+        return composeServiceSpecOperationNodeHashMap.values.toList()
     }
 
     /**
@@ -63,11 +72,10 @@ class OperationReconstruction : AbstractReconstructionModule() {
      */
     override fun getParseTree(path: String): Pair<ParsingResultType, AbstractParseTree> {
         val mapper = YAMLMapper().registerKotlinModule()
-        val parsedTree = mapper.readValue(File(path), DockerComposeSpec::class.java)
-        parsedTree.services.map { it.value.__name = it.key } // set name of service just for future reference
-        val dockerComposeParseTree = DockerComposeParseTree(path, parsedTree)
+        val dockerComposeSpec = mapper.readValue(File(path), DockerComposeSpec::class.java)
+        val dockerComposeParseTree = DockerComposeParseTree(path, dockerComposeSpec)
 
-        return Pair(ParsingResultType.FULLY_PARSED, dockerComposeParseTree)
+        return Pair(ParsingResultType.PARTIALLY_PARSED, dockerComposeParseTree)
     }
 
     /**
@@ -79,7 +87,7 @@ class OperationReconstruction : AbstractReconstructionModule() {
 
     private val json: Json = Json { ignoreUnknownKeys = true }
 
-    private fun determineServiceType(spec: DockerComposeServiceSpec): OperationNodeType {
+    private fun determineNodeType(spec: DockerComposeServiceSpec, serviceName: String): OperationNodeType {
         // Option 1: based on name of service
         val commonInfrastructureTechnology = mutableListOf(
             "mongo",
@@ -108,14 +116,14 @@ class OperationReconstruction : AbstractReconstructionModule() {
             "identity"
         ) + commonInfrastructureTechnology
 
-        if (commonInfrastructureTypes.contains(spec.__name)) {
+        if (commonInfrastructureTypes.contains(serviceName)) {
             return OperationNodeType.InfrastructureNode
         }
 
         // Option 2: based on image name
 
         // If the image is not set, we assume that it is a container
-        if (spec.image.isEmpty()) {
+        if (spec.image.isNullOrBlank()) {
             return OperationNodeType.Container
         }
 
@@ -162,14 +170,14 @@ class OperationReconstruction : AbstractReconstructionModule() {
     }
 
     private fun determineEndpoints(spec: DockerComposeServiceSpec): List<String> {
-        return spec.ports.map { port -> port.split(":")[1] }
+        return spec.ports?.map { it.toString() } ?: emptyList()
     }
 
     private fun determineDependencyNodes(
         node: Map.Entry<DockerComposeServiceSpec, OperationNode>,
         allNodes: HashMap<DockerComposeServiceSpec, OperationNode>
     ) {
-        val dependencyNodeNames = node.key.depends_on ?: return
+        val dependencyNodeNames = node.key.dependsOn ?: return
         val dependencyNodes =
             allNodes.filter { dependencyNodeNames.indexOf(it.value.name) > -1 }.values.toMutableList()
         node.value.dependencyNodes.addAll(dependencyNodes)
@@ -180,7 +188,7 @@ class OperationReconstruction : AbstractReconstructionModule() {
         allNodes: HashMap<DockerComposeServiceSpec, OperationNode>
     ) {
         val usedByNodes = mutableListOf<OperationNode>()
-        allNodes.forEach { (key, value) ->
+        allNodes.forEach { (_, value) ->
             if (value.dependencyNodes.contains(node.value)) {
                 usedByNodes.add(value)
             }
