@@ -44,11 +44,11 @@ class OperationReconstruction : AbstractReconstructionModule() {
                 Container(
                     name = serviceName,
                     endpoints = endpoints,
-                    environment = environment,
+                    defaultValues = environment,
                     deployedServices = mutableListOf(serviceName)
                 )
             } else {
-                InfrastructureNode(name = serviceName, endpoints = endpoints, environment = environment)
+                InfrastructureNode(name = serviceName, endpoints = endpoints, defaultValues = environment)
             }
             composeServiceSpecOperationNodeHashMap[serviceSpec] = operationNode
         }
@@ -122,17 +122,15 @@ class OperationReconstruction : AbstractReconstructionModule() {
 
         // Option 2: based on image name
 
-        // If the image is not set, we assume that it is a container
-        if (spec.image.isNullOrBlank()) {
-            return OperationNodeType.Container
+        // If the image is set, we check if it contains a common infrastructure name
+        if (!spec.image.isNullOrBlank()) {
+            val doesImageNameContainCommonInfrastructureName =
+                commonInfrastructureTypes.any { spec.image.contains(it, true) }
+            if (doesImageNameContainCommonInfrastructureName) {
+                return OperationNodeType.InfrastructureNode
+            }
         }
 
-        // If the image is set, we check if it contains a common infrastructure name
-        val doesImageNameContainCommonInfrastructureName =
-            commonInfrastructureTypes.any { spec.image.contains(it, true) }
-        if (doesImageNameContainCommonInfrastructureName) {
-            return OperationNodeType.InfrastructureNode
-        }
 
         // Option 3: based on Config (`CMD` or `ENTRYPOINT`) when inspect docker image
         // See: https://docs.docker.com/engine/reference/commandline/inspect/
