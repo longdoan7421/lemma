@@ -1,0 +1,5 @@
+tecnology nodejs {
+    protocols {
+        async amqp data formats "application/json" default with format "application/json";
+    }
+}

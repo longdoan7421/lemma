@@ -1,0 +1,38 @@
+import microservices from "riskManagement.services" as riskManagementServerServices
+import technology from "../technology/docker.technology" as containerTechnology
+import technology from "../technology/nodejs.technology" as protocolTechnology
+
+@technology(containerTechnology)
+@technology(protocolTechnology)
+container RiskManagementServer deployment technology containerTechnology::_deployment.Docker
+	deploys riskManagementServerServices::RiskManagementServer {
+	riskManagementServerServices::RiskManagementServer {
+		Dockerfile('
+			FROM node:16
+            WORKDIR /usr/src/app
+            COPY package.json ./
+            COPY package-lock.json ./
+            RUN npm install
+            COPY . ./
+            EXPOSE 50051
+            CMD [ "npm", "start" ]
+			')
+
+		ComposePart('
+			risk-management-server:
+                build: risk-management-server
+                image: lakesidemutual/risk-management-server
+                depends_on:
+                  - policy-management-backend
+                environment:
+                  - "activeMQ.host=policy-management-backend"
+                  - "activeMQ.port=61613"
+                ports:
+                  - "50051:50051"
+                volumes:
+                  - "node_modules:/usr/src/app/node_modules"
+        ')
+
+		basic endpoints { protocolTechnology::_protocols.amqp: "http://localhost:50051"; }
+	}
+}
