@@ -39,17 +39,18 @@ class OperationReconstruction : AbstractReconstructionModule() {
 
         dockerComposeParseTree.data.services.forEach { (serviceName, serviceSpec) ->
             val endpoints = determineEndpoints(serviceSpec)
-            val environment = serviceSpec.environment
-            val operationNode: OperationNode = if (determineNodeType(serviceSpec, serviceName) == OperationNodeType.Container) {
-                Container(
-                    name = serviceName,
-                    endpoints = endpoints,
-                    defaultValues = environment,
-                    deployedServices = mutableListOf(serviceName)
-                )
-            } else {
-                InfrastructureNode(name = serviceName, endpoints = endpoints, defaultValues = environment)
-            }
+            val environment = serviceSpec.environment?.associate { it.key to it.value }
+            val operationNode: OperationNode =
+                if (determineNodeType(serviceSpec, serviceName) == OperationNodeType.Container) {
+                    Container(
+                        name = serviceName,
+                        endpoints = endpoints,
+                        defaultValues = environment,
+                        deployedServices = mutableListOf(serviceName)
+                    )
+                } else {
+                    InfrastructureNode(name = serviceName, endpoints = endpoints, defaultValues = environment)
+                }
             composeServiceSpecOperationNodeHashMap[serviceSpec] = operationNode
         }
 

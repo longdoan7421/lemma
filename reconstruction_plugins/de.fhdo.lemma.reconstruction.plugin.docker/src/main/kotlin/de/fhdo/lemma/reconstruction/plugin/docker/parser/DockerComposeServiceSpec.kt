@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * Represents the specification of a service
- * https://github.com/compose-spec/compose-spec/blob/master/05-services.md#ports
+ * https://github.com/compose-spec/compose-spec/blob/master/05-services.md
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DockerComposeServiceSpec(
@@ -16,7 +16,7 @@ data class DockerComposeServiceSpec(
     val ports: List<DockerComposeServicePortSpec>? = null,
     @JsonProperty("depends_on")
     val dependsOn: List<String>? = null,
-    val environment: Map<String, String>? = null,
+    val environment: List<DockerComposeServiceEnvironmentSpec>? = null,
     @JsonProperty("pull_policy")
     val pullPolicy: PullPolicy? = null,
 ) {
