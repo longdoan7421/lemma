@@ -8,7 +8,7 @@ package de.fhdo.lemma.reconstruction.plugin.docker.operation.models
  */
 class InfrastructureNode(
     name: String,
-    endpoints: List<String>,
+    endpoints: List<String> = emptyList(),
     defaultValues: Map<String, String>? = null,
 ) : OperationNode(name, endpoints = endpoints, defaultValues = defaultValues) {
     override fun toString(): String {

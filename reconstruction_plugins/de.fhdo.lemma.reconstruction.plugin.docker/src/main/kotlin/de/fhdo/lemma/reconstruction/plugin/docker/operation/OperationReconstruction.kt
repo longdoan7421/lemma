@@ -30,7 +30,7 @@ import java.io.InputStreamReader
  * @author [Philip Wizenty](mailto:philip.wizenty@fh-dortmund.de)
  */
 @ReconstructionModule(ReconstructionStage.Operation)
-class OperationReconstruction : AbstractReconstructionModule() {
+class OperationReconstruction(customInfraKeywords: List<String>) : AbstractReconstructionModule() {
     private val infrastructureTechnologyDictionary = mutableListOf(
         "mongo",
         "mongodb",
@@ -47,7 +47,7 @@ class OperationReconstruction : AbstractReconstructionModule() {
         "keycloak",
     )
 
-    private val infrastructureKeywords = mutableListOf(
+    private val infrastructureComponentDictionary = mutableListOf(
         "db",
         "database",
         "registry",
@@ -56,7 +56,7 @@ class OperationReconstruction : AbstractReconstructionModule() {
         "gateway",
         "broker",
         "identity"
-    ) + infrastructureTechnologyDictionary
+    ) + infrastructureTechnologyDictionary + customInfraKeywords
 
     private val json: Json = Json { ignoreUnknownKeys = true }
 
@@ -69,24 +69,16 @@ class OperationReconstruction : AbstractReconstructionModule() {
         val composeServiceSpecOperationNodeHashMap: HashMap<DockerComposeServiceSpec, OperationNode> = hashMapOf()
 
         dockerComposeParseTree.data.services.forEach { (serviceName, serviceSpec) ->
-            val endpoints = determineEndpoints(serviceSpec)
-            val environment = serviceSpec.environment?.associate { it.key to it.value }
-            val operationNode: OperationNode =
-                if (determineNodeType(
-                        serviceSpec,
-                        serviceName,
-                        dockerComposeParseTree.path
-                    ) == OperationNodeType.Container
-                ) {
-                    Container(
-                        name = serviceName,
-                        endpoints = endpoints,
-                        defaultValues = environment,
-                        deployedServices = mutableListOf(serviceName)
-                    )
+            val operationNodeType = determineNodeType(serviceSpec, serviceName, dockerComposeParseTree.path);
+            val operationNode =
+                if (operationNodeType == OperationNodeType.Container) {
+                    Container(name = serviceName, deployedServices = mutableListOf(serviceName))
                 } else {
-                    InfrastructureNode(name = serviceName, endpoints = endpoints, defaultValues = environment)
+                    InfrastructureNode(name = serviceName)
                 }
+
+            operationNode.endpoints = determineEndpoints(serviceSpec)
+            operationNode.defaultValues = serviceSpec.environment?.associate { it.key to it.value }
             composeServiceSpecOperationNodeHashMap[serviceSpec] = operationNode
         }
 
@@ -95,7 +87,6 @@ class OperationReconstruction : AbstractReconstructionModule() {
             determineDependencyNodes(hashMapEntry, composeServiceSpecOperationNodeHashMap)
         }
 
-        // Note:
         composeServiceSpecOperationNodeHashMap.forEach { hashMapEntry ->
             determineUsedByNodes(hashMapEntry, composeServiceSpecOperationNodeHashMap)
         }
@@ -128,29 +119,87 @@ class OperationReconstruction : AbstractReconstructionModule() {
         dockerComposeFilePath: String
     ): OperationNodeType {
         // Option 1: based on name of service
-        if (infrastructureKeywords.contains(serviceName)) {
+        if (infrastructureComponentDictionary.contains(serviceName)) {
             return OperationNodeType.InfrastructureNode
         }
 
         // Option 2: based on image name
         if (!spec.image.isNullOrBlank()) {
-            val doesImageNameContainCommonInfrastructureName =
-                infrastructureKeywords.any { spec.image.contains(it, true) }
-            if (doesImageNameContainCommonInfrastructureName) {
+            val doesImageNameContainItemOfInfrastructureDictionary =
+                infrastructureComponentDictionary.any { spec.image.contains(it, true) }
+            if (doesImageNameContainItemOfInfrastructureDictionary) {
                 return OperationNodeType.InfrastructureNode
             }
         }
 
-
         // Option 3: based on Config (`CMD` or `ENTRYPOINT`) by inspecting docker image
         if (spec.build == null) {
-            return determineNodeTypeByInspectPrebuildImage(spec)
+            return determineNodeTypeByInspectPrebuiltImage(spec)
         }
 
-        return determineNodeTypeByInspectBuildImage(spec, serviceName, dockerComposeFilePath)
+        return determineNodeTypeByInspectBuildContext(spec, serviceName, dockerComposeFilePath)
     }
 
-    private fun determineNodeTypeByInspectBuildImage(
+    private fun determineNodeTypeByInspectPrebuiltImage(spec: DockerComposeServiceSpec): OperationNodeType {
+        if (isSkopeoAvailable()) {
+            return inspectPrebuiltImageWithSkopeo(spec.image!!)
+        }
+
+        return inspectPrebuiltImageWithDockerCommand(spec.image!!)
+    }
+
+    private fun isSkopeoAvailable(): Boolean {
+        val skopeoVersion = "skopeo --version".evalBash(env = emptyMap()).getOrNull()
+        return skopeoVersion?.isNotBlank() ?: false
+    }
+
+    private fun inspectPrebuiltImageWithSkopeo(imageName: String): OperationNodeType {
+        try {
+            println("Start inspecting image ${imageName} with skopeo...")
+            val inspectionResultString =
+                "skopeo inspect --config docker://${imageName}".evalBash(env = emptyMap()).getOrNull();
+
+            if (inspectionResultString.isNullOrBlank()) {
+                println("Cannot inspect image ${imageName} with skopeo, fallback to docker command.")
+                return inspectPrebuiltImageWithDockerCommand(imageName)
+            }
+
+            val inspectionResult = json.decodeFromString<SkopeoInspectionResult>(inspectionResultString)
+
+            if (inspectionResult.config.Cmd.isNullOrEmpty() && inspectionResult.config.Entrypoint.isNullOrEmpty()) {
+                return OperationNodeType.Container
+            }
+
+            if (inspectionResult.config.Cmd?.containsAnyElementOf(infrastructureTechnologyDictionary) == true ||
+                inspectionResult.config.Entrypoint?.containsAnyElementOf(infrastructureTechnologyDictionary) == true
+            ) {
+                return OperationNodeType.InfrastructureNode
+            }
+
+            return OperationNodeType.Container
+        } catch (e: Exception) {
+            println("Unexpected error occurred while inspecting ${imageName} with skopeo: ${e.message}")
+            return OperationNodeType.Container
+        }
+    }
+
+    private fun inspectPrebuiltImageWithDockerCommand(imageName: String): OperationNodeType {
+        try {
+            println("Start inspecting image ${imageName} with docker command...")
+            val pullImageResults = "docker pull ${imageName}".evalBash(env = emptyMap()).getOrNull();
+            if (pullImageResults.isNullOrBlank()) {
+                println("Could not pull image ${imageName}.")
+                return OperationNodeType.Container
+            }
+
+            return inspectImageConfig(imageName)
+        } catch (e: Exception) {
+            println("Unexpected error occurred while inspecting ${imageName}: ${e.message}")
+            return OperationNodeType.Container
+        }
+    }
+
+    private fun determineNodeTypeByInspectBuildContext(
         spec: DockerComposeServiceSpec,
         serviceName: String,
         dockerComposeFilePath: String
@@ -161,97 +210,30 @@ class OperationReconstruction : AbstractReconstructionModule() {
             .getOrNull();
 
         // inspect service's image
-        return inspectImage(spec.image)
+        return inspectImageConfig(spec.image ?: serviceName)
     }
 
-    private fun determineNodeTypeByInspectPrebuildImage(spec: DockerComposeServiceSpec): OperationNodeType {
-        if (isSkopeoAvailable()) {
-            return determineNodeTypeByInspectPrebuildImageWithSkopeo(spec)
-        }
+    private fun inspectImageConfig(imageName: String): OperationNodeType {
+        val inspectionResults =
+            "docker inspect --format='{{json .Config}}' $imageName".evalBash(env = emptyMap()).getOrNull();
 
-        return determineNodeTypeByInspectPrebuildImageWithDocker(spec)
-    }
-
-    private fun isSkopeoAvailable(): Boolean {
-        val skopeoVersion = "skopeo --version".evalBash(env = emptyMap()).getOrNull()
-        return skopeoVersion?.isNotBlank() ?: false
-    }
-
-    private fun determineNodeTypeByInspectPrebuildImageWithSkopeo(spec: DockerComposeServiceSpec): OperationNodeType {
-        try {
-            println("Start inspecting image ${spec.image} with skopeo...")
-            val inspectionResultString =
-                "skopeo inspect --config docker://${spec.image}".evalBash(env = emptyMap()).getOrNull();
-
-            if (inspectionResultString.isNullOrBlank()) {
-                println("Cannot inspect image ${spec.image} with skopeo, fallback to docker command.")
-                return determineNodeTypeByInspectPrebuildImageWithDocker(spec)
-            }
-
-            val inspectionResult = json.decodeFromString<SkopeoInspectionResult>(inspectionResultString)
-
-            if ((!inspectionResult.config.Cmd.isNullOrEmpty() && inspectionResult.config.Cmd.isMyElementExistsInList(
-                    infrastructureTechnologyDictionary
-                )) ||
-                (!inspectionResult.config.Entrypoint.isNullOrEmpty() && inspectionResult.config.Entrypoint.isMyElementExistsInList(
-                    infrastructureTechnologyDictionary
-                ))
-            ) {
-                return OperationNodeType.InfrastructureNode
-            }
-
-            return OperationNodeType.Container
-        } catch (e: Exception) {
-            println("Unexpected error occurred while inspecting ${spec.image} with skopeo: ${e.message}")
+        if (inspectionResults.isNullOrBlank()) {
+            println("No config object while inspecting ${imageName}.")
             return OperationNodeType.Container
         }
-    }
 
-    private fun determineNodeTypeByInspectPrebuildImageWithDocker(spec: DockerComposeServiceSpec): OperationNodeType {
-        try {
-            println("Start inspecting image ${spec.image} with docker command...")
-            println("Pulling image ${spec.image}...")
-            val pullImageExitStates = "docker pull ${spec.image}".evalBash(env = emptyMap()).getOrNull();
-            if (pullImageExitStates.isNullOrBlank()) {
-                println("Could not pull image ${spec.image}.")
-                return OperationNodeType.Container
-            }
-
-            return inspectImage(spec.image)
-        } catch (e: Exception) {
-            println("Unexpected error occurred while inspecting ${spec.image}: ${e.message}")
+        val imageConfig = json.decodeFromString<DockerImageInspectionConfig>(inspectionResults)
+        if (imageConfig.Cmd.isNullOrEmpty() && imageConfig.Entrypoint.isNullOrEmpty()) {
             return OperationNodeType.Container
         }
-    }
 
-    private fun inspectImage(image: String?): OperationNodeType {
-        try {
-            println("Inspecting image ${image}...")
-            val inspectingResults =
-                "docker inspect --format='{{json .Config}}' $image".evalBash(env = emptyMap()).getOrNull();
-
-            if (inspectingResults.isNullOrBlank()) {
-                println("There is no Config object while inspecting ${image}.")
-                return OperationNodeType.Container
-            }
-
-            val inspectionConfig = json.decodeFromString<DockerImageInspectionConfig>(inspectingResults)
-
-            if ((!inspectionConfig.Cmd.isNullOrEmpty() && inspectionConfig.Cmd.isMyElementExistsInList(
-                    infrastructureTechnologyDictionary
-                )) ||
-                (!inspectionConfig.Entrypoint.isNullOrEmpty() && inspectionConfig.Entrypoint.isMyElementExistsInList(
-                    infrastructureTechnologyDictionary
-                ))
-            ) {
-                return OperationNodeType.InfrastructureNode
-            }
-
-            return OperationNodeType.Container
-        } catch (e: Exception) {
-            println("Unexpected error occurred while inspecting ${image}: ${e.message}")
-            return OperationNodeType.Container
+        if (imageConfig.Cmd!!.containsAnyElementOf(infrastructureTechnologyDictionary) ||
+            imageConfig.Entrypoint!!.containsAnyElementOf(infrastructureTechnologyDictionary)
+        ) {
+            return OperationNodeType.InfrastructureNode
         }
+
+        return OperationNodeType.Container
     }
 
     private fun determineEndpoints(spec: DockerComposeServiceSpec): List<String> {

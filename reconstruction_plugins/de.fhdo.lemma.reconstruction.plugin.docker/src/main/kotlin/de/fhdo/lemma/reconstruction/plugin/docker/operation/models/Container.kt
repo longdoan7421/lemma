@@ -8,7 +8,7 @@ package de.fhdo.lemma.reconstruction.plugin.docker.operation.models
  */
 class Container(
     name: String,
-    endpoints: List<String>,
+    endpoints: List<String> = emptyList(),
     private val deployedServices: MutableList<String>, // NOTE: assume name of deployed service is equal to name of docker compose service
     defaultValues: Map<String, String>? = null,
 //    private val technology: String, // TODO: how to detect?
